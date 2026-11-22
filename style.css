@@ -265,3 +265,16 @@ h1 span{font-size:64px;color:#fff6a8;text-shadow:0 5px 0 #c77dff,0 10px 24px #7b
 .cert{width:640px;padding:10px;border:10px double #ffd34d;border-radius:30px;background:#fffdf3}
 .cert img{height:250px}.ctitle{font-size:56px;font-weight:900;color:#d81b74}.cert p{margin:4px}.cd{direction:ltr;color:#999!important;font-size:24px!important}
 .certo .ovbox{padding:20px 30px}
+/* shop */
+.shopgrid{position:absolute;left:50px;top:110px;width:840px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;z-index:30}
+.scard{background:linear-gradient(180deg,#fff,#ffe3f1);border:4px solid #ff9cc8;border-radius:26px;height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 8px 0 #f17db5,0 12px 24px #c2185b33;cursor:pointer;touch-action:none}
+.scard .sico{width:110px;height:100px;display:flex;align-items:center;justify-content:center}
+.scard .sico svg{max-width:100%;max-height:100%}
+.scard .snm{font-weight:900;color:#a0136a;font-size:22px}
+.scard .spr{margin-top:6px;background:#ffd34d;color:#7a4a00;border-radius:16px;padding:2px 14px;font-weight:900;font-size:22px;direction:ltr}
+.scard.own{border-color:#7be07b;box-shadow:0 8px 0 #4cbb4c}.scard.own .spr{background:#7be07b;color:#fff;direction:rtl}
+.scard.lock{filter:saturate(.55);opacity:.85}
+.scard.can{animation:bob 1.6s ease-in-out infinite}
+.shopnote{position:absolute;left:50px;top:560px;width:840px;text-align:center;font-weight:900;color:#a0136a;font-size:24px;z-index:30}
+.shopgo{position:absolute;left:340px;top:615px;z-index:30;font-size:22px}
+@keyframes sbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}.scard.can{animation:sbob 1.6s ease-in-out infinite}

@@ -63,7 +63,7 @@ function stepWake(r){setBg(ROOMS.bedroom.bg);var art=A.ART2;bigEl(art.BED_B,'',4
   tap(clk,wake);tap(g,wake);}
 function stepTeeth(r){setBg(ROOMS.bath.bg);var b=bust(380,110,470);var mouth={x:380+470*.493,y:110+b._h*.669};
   var br=bigEl(S.brush,'',mouth.x+30,mouth.y-30,220,60,12);br.style.pointerEvents='none';var pb=bar('🪥 الأسنان');
-  say('فرشي أسنانج! حركي إصبعج يمين ويسار على الفم 🪥');var n=0,lastX=null,dir=0,done=false,need=12;
+  say('فرشي أسنانج! حركي إصبعج يمين ويسار على الفم 🪥');var n=0,lastX=null,dir=0,done=false,need=10;
   var pad=div('swipe','','left:260px;top:'+(mouth.y-140)+'px;width:700px;height:280px');
   var hand=div('handhint','👆','left:'+(mouth.x-20)+'px;top:'+(mouth.y+60)+'px');
   pad.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();lastX=A.toStage(e).x;hand.remove();try{pad.setPointerCapture(e.pointerId);}catch(_){}});
@@ -167,7 +167,7 @@ var ESHAPE=[[0,0],[0,100],[0,200],[90,0],[0,0],[0,100],[70,100],[0,100],[0,200],
 function ePath(){var P=[];var segs=[[[0,0],[0,200]],[[0,0],[90,0]],[[0,100],[70,100]],[[0,200],[90,200]]];segs.forEach(function(s){for(var t=0;t<=1.0001;t+=.1)P.push([s[0][0]+(s[1][0]-s[0][0])*t,s[0][1]+(s[1][1]-s[0][1])*t]);});return P;}
 ROOMS.sch4=def({name:'الصف',color:'linear-gradient(135deg,#d8f5c8,#7ec8ff)',charH:280,bg:'',
  icon:'<svg viewBox="0 0 100 100"><rect x="8" y="10" width="84" height="54" rx="8" fill="#2f6f5a" stroke="#c48a55" stroke-width="6"/><text x="50" y="50" font-size="30" text-anchor="middle" fill="#fff" font-weight="900">E</text><rect x="20" y="72" width="60" height="12" rx="4" fill="#d9a77a"/></svg>',
- intro:'',init:function(r){
+ intro:'',init:function(r){var b3=div('gbtn','الصف 3D 🏫','position:absolute;left:16px;top:370px;z-index:40;font-size:20px;padding:8px 14px');b3.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();location.href='class3d.html';});
   setBg('<svg class="bg" viewBox="0 0 1280 720"><rect width="1280" height="720" fill="#fff6e3"/><rect width="1280" height="500" fill="#e4f6ff"/><rect y="492" width="1280" height="16" fill="#c9a4ff"/><rect y="508" width="1280" height="212" fill="#f3d1b0"/>'+
    '<g transform="translate(60 90)"><rect width="150" height="110" rx="10" fill="#fff" stroke="#ffd34d" stroke-width="6"/><text x="75" y="70" font-size="44" text-anchor="middle" fill="#ff5fa2" font-weight="900">A B C</text></g>'+
    '<g transform="translate(60 230)"><rect width="150" height="110" rx="10" fill="#fff" stroke="#7ed6ff" stroke-width="6"/><text x="75" y="72" font-size="46" text-anchor="middle" fill="#2f93d6" font-weight="900">1 2 3</text></g>'+
@@ -205,7 +205,7 @@ ROOMS.sch4=def({name:'الصف',color:'linear-gradient(135deg,#d8f5c8,#7ec8ff)',
         end:function(c,p){var tg=slots[k];var tx=parseFloat(tg.style.left),ty=parseFloat(tg.style.top);if(Math.hypot(p.x-(tx+35),p.y-(ty+35))<70){s._done=true;s.style.left=tx+'px';s.style.top=ty+'px';matched++;star();
           if(matched===3){teacherSay('ممتاز! خلصتي كل الأسئلة 🌟');later(cert,1500);}}else{sfx.oops();s.style.left=home.x+'px';s.style.top=home.y+'px';teacherSay('هذا مو مكانه، جربي ثاني 🙂');}}});});}
   function cert(){document.querySelectorAll('.sshape,.sslot').forEach(function(e){e.remove();});A.confetti();sfx.win();var d=new Date();var ds=d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();A.ui.addCoins(15,640,300);
-    var o=A.ui.overlay('<div class="cert"><div class="ctitle">⭐ نجمة الصف ⭐</div><img src="img/ghalia.png" alt=""><p>شهادة تقدير للبطلة <b>غالية</b></p><p>جمعتي <b>'+r.starsGot+'</b> نجمة اليوم!</p><p class="cd">'+ds+'</p></div>',[{t:'القائمة 🏠',cls:'alt',fn:function(){A.goMenu();}},{t:'من البداية 🔁',fn:function(){A.openRoom('sch1');}}]);o.classList.add('certo');}
+    var o=A.ui.overlay('<div class="cert"><div class="ctitle">⭐ نجمة الصف ⭐</div><img src="img/ghalia.png" alt=""><p>شهادة تقدير للبطلة <b>غالية</b></p><p>جمعتي <b>'+r.starsGot+'</b> نجمة اليوم!</p><p class="cd">'+ds+'</p></div>',[{t:'القائمة 🏠',cls:'alt',fn:function(){A.goMenu();}},{t:'من البداية 🔁',fn:function(){A.openRoom('sch1');}},{t:'الصف 3D 🏫',fn:function(){location.href='class3d.html';}}]);o.classList.add('certo');}
   teacherSay('صباح الخير يا شطار! 🌞');later(function(){raise(letters,'منو يعرف الحروف؟');},1500);
  }});
 })();

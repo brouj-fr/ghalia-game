@@ -196,7 +196,7 @@ function iris(fn){if(!irisEl){irisEl=document.createElement('div');irisEl.id='ir
   if(irisBusy||!irisEl.animate){fn();return;}irisBusy=true;sfx.whoosh();
   var a=irisEl.animate([{width:'1600px',height:'1600px'},{width:'0px',height:'0px'}],{duration:320,easing:'ease-in',fill:'forwards'});
   a.onfinish=function(){try{fn();}catch(e){irisBusy=false;throw e;}var b=irisEl.animate([{width:'0px',height:'0px'},{width:'1600px',height:'1600px'}],{duration:380,easing:'ease-out',fill:'forwards'});b.onfinish=function(){irisBusy=false;};};}
-function openRoomNow(id){
+function openRoomNow(id){if(id!=='sch1'&&CH.ghalia.outfit==='pj')CH.ghalia.outfit=null;
   if(R){R.dead=true;}
   if(R&&R.timers)R.timers.forEach(function(t){clearTimeout(t);clearInterval(t);});
   var def=ROOMS[id];show('room');scene.innerHTML=def.bg;toolbar.innerHTML='';fx.innerHTML='';dragl.innerHTML='';

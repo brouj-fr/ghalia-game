@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>مغامرات غالية مع خالتها</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage" data-screen="start">
+
+  <section id="start" class="screen">
+    <div class="hearts"></div>
+    <div class="startChars">
+      <img src="img/khala.png" class="sk" alt="" draggable="false">
+      <img src="img/ghalia.png" class="sg" alt="" draggable="false">
+    </div>
+    <div class="startBox">
+      <h1>مغامرات غالية<br><span>مع خالتها</span></h1>
+      <button id="play" class="bigbtn">يلا نلعب <b>&#9654;</b></button>
+      <p class="gift">هدية من خالتج لغالية 💗</p>
+    </div>
+  </section>
+
+  <section id="menu" class="screen">
+    <h2>وين نروح اليوم؟</h2>
+    <div id="cards"></div>
+  </section>
+
+  <section id="room" class="screen">
+    <div id="scene"></div>
+    <div id="toolbar"></div>
+    <div id="carousel"></div>
+  </section>
+
+  <div id="topbar">
+    <button id="bHome" class="rb" title="البيت"></button>
+    <button id="bReset" class="rb" title="من جديد"></button>
+    <button id="bMusic" class="rb lt" title="الموسيقى"></button>
+    <button id="bVoice" class="rb lt" title="الصوت"></button>
+  </div>
+  <div id="bubble"><img src="img/khala_face.png" alt="" draggable="false"><p id="btext"></p></div>
+  <div id="dragl"></div>
+  <div id="fx"></div>
+  <div id="rotate">لفّي الجهاز بالعرض عشان تلعبين 🔄<small>(اضغطي للإكمال)</small></div>
+</div>
+<script src="game.js"></script>
+<script src="rooms.js"></script>
+<script>GAME.api.buildMenu();</script>
+</body>
+</html>

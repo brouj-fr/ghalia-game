@@ -156,3 +156,5 @@ h1 span{font-size:64px;color:#fff6a8;text-shadow:0 5px 0 #c77dff,0 10px 24px #7b
 .tool:before,.cc:before,.rb:before{content:"";position:absolute;left:12%;right:12%;top:4px;height:36%;border-radius:999px;background:linear-gradient(#ffffffcc,#ffffff00);pointer-events:none}
 .cc{position:relative;box-shadow:0 4px 0 #b0105c}
 #bubble{border:4px solid #ff5fa2;background:linear-gradient(#fff,#fff0f7)}
+.acc,.acc .bk,.acc .fr,.acc .bk *{pointer-events:none}
+.acc .fr svg *{pointer-events:visiblePainted}

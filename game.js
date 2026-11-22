@@ -5,8 +5,12 @@ var W=1280,H=720;
 function $(s){return document.querySelector(s);}
 var stage=$('#stage'),scene=$('#scene'),toolbar=$('#toolbar'),carousel=$('#carousel'),fx=$('#fx'),dragl=$('#dragl'),bubble=$('#bubble'),btext=$('#btext');
 var scale=1,GY=0;
-function fit(){scale=Math.min(innerWidth/W,innerHeight/H);stage.style.transform='translate(-50%,-50%) scale('+scale+')';}
-addEventListener('resize',fit);fit();
+var rot=false;
+function fit(){var w=innerWidth,h=innerHeight;rot=h>w*1.05;
+  if(rot){scale=Math.min(h/W,w/H);stage.style.transform='translate(-50%,-50%) rotate(90deg) scale('+scale+')';}
+  else{scale=Math.min(w/W,h/H);stage.style.transform='translate(-50%,-50%) scale('+scale+')';}}
+function c2s(cx,cy){var r=stage.getBoundingClientRect();var dx=(cx-(r.left+r.width/2))/scale,dy=(cy-(r.top+r.height/2))/scale;return rot?{x:W/2+dy,y:H/2-dx}:{x:W/2+dx,y:H/2+dy};}
+addEventListener('resize',fit);addEventListener('orientationchange',function(){setTimeout(fit,200);});fit();
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function rnd(a,b){return a+Math.random()*(b-a);}
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
@@ -81,9 +85,9 @@ function hop(el,n){if(!el)return;el.animate([{transform:'translateY(0)'},{transf
 function wiggle(el){el.animate([{transform:'rotate(0)'},{transform:'rotate(-10deg)'},{transform:'rotate(10deg)'},{transform:'rotate(0)'}],{duration:400});}
 
 /* ---------- coordinates & drag ---------- */
-function toStage(e){var r=stage.getBoundingClientRect();return {x:(e.clientX-r.left)/scale,y:(e.clientY-r.top)/scale};}
+function toStage(e){return c2s(e.clientX,e.clientY);}
 function hp(p){return {x:p.x,y:p.y-GY};}
-function centerOf(el){var r=el.getBoundingClientRect(),s=stage.getBoundingClientRect();return {x:(r.left+r.width/2-s.left)/scale,y:(r.top+r.height/2-s.top)/scale};}
+function centerOf(el){var r=el.getBoundingClientRect();return c2s(r.left+r.width/2,r.top+r.height/2);}
 function drag(el,o){
   el.addEventListener('pointerdown',function(e){
     if(e.button>0)return;e.preventDefault();e.stopPropagation();audio();
@@ -159,7 +163,7 @@ function accEl(who,id){var A=ACC[id],s=SLOTS[who][A.slot];var wP=A.w,hP=A.r*wP*C
   var d=document.createElement('div');d.className='acc';d.style.left=(s.x-wP/2)+'%';d.style.top=top+'%';d.style.width=wP+'%';d.style.height=hP+'%';
   d.innerHTML=accHTML(A);accDrag(d,who,id);return d;}
 function accDrag(d,who,id){drag(d,{
-  start:function(p){var r=d.getBoundingClientRect();var g=mkGhost(accHTML(ACC[id]),r.width/scale,r.height/scale);d.style.visibility='hidden';placeG(g,p);sfx.pick();return {g:g};},
+  start:function(p){var g=mkGhost(accHTML(ACC[id]),d.offsetWidth,d.offsetHeight);d.style.visibility='hidden';placeG(g,p);sfx.pick();return {g:g};},
   move:function(c,p){placeG(c.g,p);},
   end:function(c,p,tap){c.g.remove();
     if(tap){d.style.visibility='';var h=centerOf(d);burst(h.x,h.y,6);sfx.sparkle();return;}
@@ -215,7 +219,7 @@ tapBtn($('#bVoice'),function(){voiceOn=!voiceOn;$('#bVoice').classList.toggle('o
 function goMenu(){if(R&&R.timers)R.timers.forEach(function(t){clearTimeout(t);clearInterval(t);});fx.innerHTML='';show('menu');say('وين تبين نروح اليوم يا غالية؟ 🏠');}
 tapBtn($('#play'),function(){if(stage.requestFullscreen&&matchMedia('(pointer:coarse)').matches){try{document.documentElement.requestFullscreen().catch(function(){});}catch(e){}}goMenu();});
 (function(){var h=$('.hearts');for(var i=0;i<18;i++){var e=document.createElement('i');e.textContent=pick(['♥','✦','♥','★']);e.style.left=rnd(0,1280)+'px';e.style.fontSize=rnd(20,50)+'px';e.style.animationDuration=rnd(7,14)+'s';e.style.animationDelay=(-rnd(0,14))+'s';h.appendChild(e);}})();
-var rot=$('#rotate');rot.classList.add('need');rot.addEventListener('click',function(){rot.classList.remove('need');});
+
 
 function buildMenu(){var cards=$('#cards');cards.innerHTML='';ORDER.forEach(function(id){var d=ROOMS[id];var c=document.createElement('div');c.className='card';
   c.innerHTML='<div class="ic" style="background:'+d.color+'">'+d.icon+'</div><b>'+d.name+'</b>';cards.appendChild(c);

@@ -23,8 +23,8 @@ function fill(cat){cur=cat;var c=CATS.filter(function(x){return x.id===cat;})[0]
 CATS.forEach(function(c){var b=document.createElement('button');b.className='tab';b.dataset.c=c.id;b.textContent=c.name;tabs.appendChild(b);
   b.addEventListener('click',function(){A.sfx.pop();fill(c.id);});});
 var drag=null;
-strip.addEventListener('pointerdown',function(e){e.preventDefault();drag={x:e.clientX,o:off,moved:false,id:e.pointerId};try{strip.setPointerCapture(e.pointerId);}catch(_){}});
-strip.addEventListener('pointermove',function(e){if(!drag||e.pointerId!==drag.id)return;var dx=(e.clientX-drag.x)/(A.getScale?A.getScale():1);if(Math.abs(dx)>10)drag.moved=true;if(drag.moved)setOff(drag.o+dx);});
+strip.addEventListener('pointerdown',function(e){e.preventDefault();drag={x:A.toStage(e).x,o:off,moved:false,id:e.pointerId};try{strip.setPointerCapture(e.pointerId);}catch(_){}});
+strip.addEventListener('pointermove',function(e){if(!drag||e.pointerId!==drag.id)return;var dx=A.toStage(e).x-drag.x;if(Math.abs(dx)>10)drag.moved=true;if(drag.moved)setOff(drag.o+dx);});
 function up(e){if(!drag||e.pointerId!==drag.id)return;var d=drag;drag=null;if(d.moved)return;
   try{strip.releasePointerCapture(e.pointerId);}catch(_){}
   var t=document.elementFromPoint(e.clientX,e.clientY);var card=t&&t.closest&&t.closest('.card');

@@ -69,7 +69,7 @@ function outfit(main,acc,patt){
   if(patt==='stars'){for(var k=0;k<10;k++){var x=40+(k*31)%124,y=330+Math.floor(k/3)*46;s+='<path d="M'+x+' '+(y-8)+' l2.5 6 6 2 -6 2 -2.5 6 -2.5 -6 -6 -2 6 -2z" fill="'+acc+'"/>';}}
   if(patt==='hearts'){for(var h=0;h<8;h++){var hx=46+(h*39)%112,hy=340+Math.floor(h/3)*50;s+='<path d="M'+hx+' '+(hy+8)+' c-10 -7 -11 -14 -6 -16 c3 -1 5 1 6 3 c1 -2 3 -4 6 -3 c5 2 4 9 -6 16z" fill="'+acc+'"/>';}}
   return s+'</svg>';}
-OUT.dPink=outfit('#ff8fc0','#ffffff','stars');OUT.dLav=outfit('#c9a4ff','#ffd34d','flowers');OUT.dBlue=outfit('#7ec8ff','#ffd34d','dots');OUT.dMint=outfit('#8fe3c0','#ff7eb6','hearts');
+A.outfitSVG=outfit;OUT.pj=outfit('#ffd6ea','#ff9cc8','stars');OUT.dPink=outfit('#ff8fc0','#ffffff','stars');OUT.dLav=outfit('#c9a4ff','#ffd34d','flowers');OUT.dBlue=outfit('#7ec8ff','#ffd34d','dots');OUT.dMint=outfit('#8fe3c0','#ff7eb6','hearts');
 function dressIcon(id){return OUT[id].replace('viewBox="0 0 202 600"','viewBox="-40 150 282 380"');}
 TOOLS.dPink={name:'فستان وردي',svg:dressIcon('dPink'),tip:'فستان وردي طويل 💗'};TOOLS.dLav={name:'فستان ورد',svg:dressIcon('dLav'),tip:'فستان بنفسجي بالورد 🌼'};
 TOOLS.dBlue={name:'دراعة',svg:dressIcon('dBlue'),tip:'دراعة زرقا 💙'};TOOLS.dMint={name:'فستان قلوب',svg:dressIcon('dMint'),tip:'فستان أخضر بالقلوب 💚'};

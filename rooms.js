@@ -194,5 +194,6 @@ ROOMS.bedroom={name:'غرفة النوم',color:'linear-gradient(135deg,#d9ccff,
    return false;}
 };
 
+A.ART2={BED_B:BED_B,BED_F:BED_F,CAKE:CAKE,K:K};
 ORDER.push('salon','dress','kitchen','bedroom');
 })();

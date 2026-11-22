@@ -179,7 +179,7 @@ var CATS=[];
 function openRoom(id){
   if(R&&R.timers)R.timers.forEach(function(t){clearTimeout(t);clearInterval(t);});
   var def=ROOMS[id];show('room');scene.innerHTML=def.bg;toolbar.innerHTML='';fx.innerHTML='';dragl.innerHTML='';
-  R={id:id,def:def,chars:{},charH:def.charH||300,timers:[]};
+  R={id:id,def:def,chars:{},charH:def.charH||300,timers:[]};toolbar.classList.toggle('many',def.tools.length>6);
   def.tools.forEach(function(tid){var t=TOOLS[tid];var b=document.createElement('div');b.className='tool';b.dataset.id=tid;b.innerHTML=t.svg+'<span>'+t.name+'</span>';toolbar.appendChild(b);toolDrag(b,tid);});
   if(def.init)def.init(R);
   for(var who in (def.spawn||{})){if(def.spawn[who][2])putChar(who,def.spawn[who][0],def.spawn[who][1]);}
@@ -224,7 +224,7 @@ function buildMenu(){var cards=$('#cards');cards.innerHTML='';ORDER.forEach(func
 /* ---------- shared API for rooms ---------- */
 GAME.api={say:say,sfx:sfx,burst:burst,confetti:confetti,hop:hop,wiggle:wiggle,drag:drag,mkGhost:mkGhost,placeG:placeG,flyBack:flyBack,shrink:shrink,
   putChar:putChar,charAt:charAt,headOf:headOf,wear:wear,renderAcc:renderAcc,later:later,hintTool:hintTool,TOOLS:TOOLS,SV:SV,ACC:ACC,CH:CH,SLOTS:SLOTS,
-  getR:function(){return R;},scene:function(){return scene;},hp:hp,centerOf:centerOf,rnd:rnd,pick:pick,clamp:clamp,fl5:fl5,buildMenu:buildMenu,openRoom:openRoom,
+  getR:function(){return R;},getScale:function(){return scale;},scene:function(){return scene;},hp:hp,centerOf:centerOf,rnd:rnd,pick:pick,clamp:clamp,fl5:fl5,buildMenu:buildMenu,openRoom:openRoom,
   fx:fx,STAR:STAR,OUTFITS:OUTFITS,CHI:CHI,show:show,tapBtn:tapBtn,setPos:setPos,toStage:toStage,goMenu:function(){goMenu();}};
 
 /* ================= GARDEN ================= */

@@ -61,9 +61,12 @@ GAME.ORDER.push('shop');
 })();
 /* 3D classroom (separate page class3d.html) */
 (function(){var A=GAME.api,ROOMS=GAME.ROOMS;
-ROOMS.class3d={name:'الصف ثلاثي الأبعاد',color:'linear-gradient(135deg,#d9f1ff,#c9a4ff)',bg:'<svg class="bg" viewBox="0 0 1280 720"><rect width="1280" height="720" fill="#e9dcff"/></svg>',tools:[],noCarousel:true,noWalk:true,noWander:true,
+ROOMS.world3d={name:'عالم غالية 3D',color:'linear-gradient(135deg,#ffd6ea,#b388ff)',bg:'<svg class="bg" viewBox="0 0 1280 720"><rect width="1280" height="720" fill="#ffe3f1"/></svg>',tools:[],noCarousel:true,noWalk:true,noWander:true,
+ icon:'<svg viewBox="0 0 100 100"><path d="M50 6 L94 40 H82 V92 H18 V40 H6Z" fill="#ff7eb6"/><rect x="40" y="60" width="20" height="32" rx="6" fill="#fff"/><text x="50" y="52" font-size="22" font-weight="900" text-anchor="middle" fill="#fff">3D</text></svg>',
+ init:function(){A.sfx.pop();setTimeout(function(){location.href='world3d.html';},200);}};
+ROOMS.class3d={name:'الصف 3D',color:'linear-gradient(135deg,#d9f1ff,#c9a4ff)',bg:'<svg class="bg" viewBox="0 0 1280 720"><rect width="1280" height="720" fill="#e9dcff"/></svg>',tools:[],noCarousel:true,noWalk:true,noWander:true,
  icon:'<svg viewBox="0 0 100 100"><path d="M50 8 L92 30 L50 52 L8 30Z" fill="#ff9ec4"/><path d="M8 30 V72 L50 94 V52Z" fill="#c77dff"/><path d="M92 30 V72 L50 94 V52Z" fill="#9b5de5"/><text x="50" y="38" font-size="20" font-weight="900" text-anchor="middle" fill="#fff">3D</text></svg>',
  init:function(){A.sfx.pop();setTimeout(function(){location.href='class3d.html';},200);}};
-GAME.ORDER.push('class3d');A.go3d=function(){location.href='class3d.html';};
+GAME.ORDER.push('world3d','class3d');A.go3d=function(){location.href='class3d.html';};
 if(location.hash==='#menu'){setTimeout(function(){try{A.goMenu();}catch(e){}},50);}
 })();

@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>مغامرات غالية مع خالتها 3D</title>
+  <link href="fonts/tajawal.css" rel="stylesheet" />
+  <style>
+    :root {
+      --pink: #ff85b3;
+      --lavender: #c79dff;
+      --mint: #8be8d5;
+      --gold: #ffd166;
+      --text: #5c3a58;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      background: #ffeef6; font-family: 'Tajawal', system-ui, sans-serif; color: var(--text); touch-action: none;
+    }
+    #game-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+    /* Start Screen Overlay */
+    .start-overlay {
+      position: fixed; inset: 0; z-index: 50;
+      background: linear-gradient(180deg, rgba(255, 232, 243, 0.72), rgba(243, 224, 255, 0.82));
+      backdrop-filter: blur(4px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px; text-align: center;
+    }
+    .start-overlay.hidden { display: none; }
+    .start-card {
+      background: rgba(255,255,255,0.94); border: 4px solid #ffb3d1; border-radius: 34px;
+      padding: 26px 22px; width: min(440px, 92vw);
+      box-shadow: 0 18px 45px rgba(214, 69, 132, 0.25);
+      animation: gentleFloat 2.6s ease-in-out infinite;
+    }
+    .start-badge { font-size: 46px; margin-bottom: 6px; }
+    .start-title { font-size: clamp(24px, 6vw, 32px); font-weight: 800; color: #d64584; margin: 0 0 8px; }
+    .start-sub { font-size: clamp(16px, 3.8vw, 20px); font-weight: 700; color: #7c3f8a; margin: 0 0 20px; }
+
+    /* Top HUD */
+    .hud-top {
+      position: fixed; top: max(12px, env(safe-area-inset-top));
+      left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right));
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none; z-index: 20; gap: 8px;
+    }
+    .hud-group { display: flex; align-items: center; gap: 8px; pointer-events: auto; }
+    .pill-btn {
+      background: rgba(255,255,255,0.92); border: 3px solid #ffb3d1; border-radius: 999px;
+      padding: 7px 14px; font-family: inherit; font-weight: 800; font-size: clamp(13px, 2.8vw, 17px);
+      color: #d64584; cursor: pointer; box-shadow: 0 6px 15px rgba(255,133,179,0.22);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .coin-pill {
+      background: linear-gradient(135deg, #fff9e6, #ffe8a3); border: 3px solid #ffd166;
+      border-radius: 999px; padding: 6px 13px; font-weight: 800; font-size: clamp(15px, 3vw, 19px);
+      color: #8a5a00; box-shadow: 0 6px 15px rgba(255,209,102,0.35);
+      display: flex; align-items: center; gap: 5px; direction: ltr;
+    }
+    .coin-pill.pop { animation: popBounce 0.45s ease; }
+    .sound-btn {
+      width: 40px; height: 40px; border-radius: 50%; border: 3px solid #d9b8ff;
+      background: rgba(255,255,255,0.92); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .hint-banner {
+      position: fixed; top: max(64px, calc(env(safe-area-inset-top) + 52px)); left: 50%;
+      transform: translateX(-50%); background: rgba(255,255,255,0.92); border: 2px solid #b5f2e4;
+      border-radius: 999px; padding: 5px 16px; font-size: clamp(12px, 2.6vw, 15px); font-weight: 700;
+      color: #3d7a6e; z-index: 18; pointer-events: none; white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(139,232,213,0.3);
+    }
+
+    .speech-bubble {
+      position: fixed; bottom: max(150px, 21vh); left: 50%; transform: translateX(-50%) scale(0.9);
+      background: #ffffff; border: 3px solid #ff9ec4; border-radius: 22px; padding: 10px 18px;
+      font-size: clamp(14px, 3vw, 18px); font-weight: 700; color: #b8326a;
+      box-shadow: 0 8px 20px rgba(255,133,179,0.28); z-index: 25; pointer-events: none;
+      opacity: 0; transition: opacity 0.25s ease, transform 0.25s ease; max-width: 86vw; text-align: center;
+    }
+    .speech-bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+
+    /* Bottom-left Joystick */
+    .joystick-zone {
+      position: fixed; left: max(18px, env(safe-area-inset-left)); bottom: max(18px, env(safe-area-inset-bottom));
+      width: 114px; height: 114px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.68), rgba(255,194,221,0.45));
+      border: 3px solid rgba(255,133,179,0.78); box-shadow: 0 8px 20px rgba(255,133,179,0.25);
+      z-index: 22; touch-action: none; display: flex; align-items: center; justify-content: center;
+    }
+    .joystick-zone.hidden { display: none; }
+    .joystick-knob {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(145deg, #ff9ec4, #ff6fa8); border: 3px solid #fff;
+      box-shadow: 0 4px 12px rgba(214,69,132,0.4); pointer-events: none;
+    }
+
+    /* Action Button (Bottom-Right) */
+    .action-btn {
+      position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: max(22px, env(safe-area-inset-bottom));
+      background: linear-gradient(135deg, #ff85b3, #c79dff); color: #fff; border: 3px solid #fff;
+      border-radius: 999px; padding: 12px 20px; font-family: inherit; font-size: clamp(14px, 3vw, 17px);
+      font-weight: 800; box-shadow: 0 8px 20px rgba(199,157,255,0.45); cursor: pointer; z-index: 22;
+      display: flex; align-items: center; gap: 6px; animation: gentleFloat 2.2s ease-in-out infinite;
+    }
+    .action-btn.hidden { display: none; }
+
+    /* Car Controls */
+    .car-hud {
+      position: fixed; bottom: max(22px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+      z-index: 24; display: none; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .car-hud.active { display: flex; }
+    .traffic-pill {
+      background: rgba(255,255,255,0.95); border: 3px solid #ffd1e6; border-radius: 999px;
+      padding: 6px 18px; font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .drive-btn {
+      background: linear-gradient(135deg, #6ee7b7, #3b82f6); color: #fff; border: 4px solid #fff;
+      border-radius: 999px; padding: 14px 34px; font-family: inherit; font-size: 20px; font-weight: 800;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18); cursor: pointer;
+    }
+    .drive-btn.stop-mode { background: linear-gradient(135deg, #ff758f, #ff4d6d); }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(92,58,88,0.38); backdrop-filter: blur(5px);
+      display: none; align-items: center; justify-content: center; padding: 14px; z-index: 40;
+    }
+    .modal-backdrop.open { display: flex; animation: fadeIn 0.22s ease; }
+    .modal-card {
+      width: min(500px, 94vw); max-height: 88vh; overflow-y: auto;
+      background: linear-gradient(180deg, #ffffff 0%, #fff4f9 100%);
+      border: 4px solid #ffb3d1; border-radius: 28px; padding: 18px 16px;
+      box-shadow: 0 18px 40px rgba(214,69,132,0.28); text-align: center;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .modal-title { font-size: clamp(19px, 4.5vw, 24px); font-weight: 800; color: #d64584; margin: 0; }
+    .close-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ffc2dd;
+      background: #fff0f6; color: #d64584; font-size: 18px; font-weight: 800; cursor: pointer;
+    }
+    .primary-btn {
+      background: linear-gradient(135deg, #ff7eb3, #c77dff); color: #fff; border: 3px solid #fff;
+      border-radius: 999px; padding: 12px 26px; font-family: inherit; font-size: 18px; font-weight: 800;
+      cursor: pointer; box-shadow: 0 8px 20px rgba(199,125,255,0.35);
+    }
+
+    /* Hub Grid */
+    .hub-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
+    .hub-card {
+      background: #fff; border: 3px solid #ffd1e6; border-radius: 22px; padding: 16px 10px;
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-family: inherit; box-shadow: 0 6px 14px rgba(255,133,179,0.16);
+    }
+    .hub-card.active-world { border-color: #8be8d5; background: #f2fffc; }
+    .hub-icon { font-size: 38px; }
+    .hub-name { font-size: 16px; font-weight: 800; color: #5c3a58; }
+
+    /* Wardrobe & Bag Packing & Shop Grids */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+    .item-card {
+      background: #fff; border: 3px solid #ffd1e6; border-radius: 20px; padding: 12px 8px;
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px;
+      font-family: inherit; box-shadow: 0 5px 12px rgba(255,133,179,0.14);
+    }
+    .item-card.packed, .item-card.owned { border-color: #6ee7b7; background: #ecfdf5; }
+    .item-card.wiggle { animation: wiggle 0.36s ease; }
+    .item-card.correct-pop { animation: popBounce 0.45s ease; border-color: #6ee7b7; background: #ecfdf5; }
+    .swatch { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+    .bag-dropzone {
+      margin: 12px 0; padding: 14px; border: 3px dashed #c79dff; border-radius: 22px;
+      background: #faf5ff; font-weight: 800; color: #7c3f8a; font-size: 16px;
+    }
+
+    /* Classroom Quiz */
+    .progress-pill {
+      background: #f3e8ff; border: 2px solid #d9b8ff; border-radius: 999px;
+      padding: 4px 12px; font-weight: 800; font-size: 14px; color: #6b3fa0; direction: ltr;
+    }
+    .question-box { background: #fff; border: 3px dashed #c79dff; border-radius: 22px; padding: 12px; margin: 8px 0 14px; }
+    .question-title { font-size: clamp(17px, 4vw, 22px); font-weight: 800; color: #7c3f8a; margin: 0 0 6px; }
+    .question-target { font-size: clamp(28px, 7vw, 40px); font-weight: 800; color: #d64584; display: inline-flex; align-items: center; gap: 10px; }
+    .feedback-text { min-height: 26px; margin-top: 10px; font-size: 16px; font-weight: 800; color: #d64584; }
+
+    .ui-sparkle { position: fixed; pointer-events: none; font-size: 22px; z-index: 60; animation: sparkleUp 0.8s ease-out forwards; }
+
+    @keyframes popBounce { 0%{transform:scale(1)} 40%{transform:scale(1.14)} 75%{transform:scale(0.95)} 100%{transform:scale(1)} }
+    @keyframes wiggle { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+    @keyframes gentleFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes sparkleUp { 0%{opacity:1;transform:translate(-50%,-50%) scale(0.6)} 100%{opacity:0;transform:translate(-50%,-120%) scale(1.3)} }
+
+    @media (max-height: 480px) and (orientation: landscape) {
+      .joystick-zone { width: 92px; height: 92px; left: 14px; bottom: 12px; }
+      .joystick-knob { width: 40px; height: 40px; }
+      .hint-banner { top: 54px; font-size: 12px; }
+    }
+      a.home-btn{pointer-events:auto;text-decoration:none;color:inherit}
+  </style>
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Start Screen (Matches your 2D Game!) -->
+  <div class="start-overlay" id="start-overlay">
+    <div class="start-card">
+      <div class="start-badge">👑🌸🎀</div>
+      <h1 class="start-title">مغامرات غالية مع خالتها</h1>
+      <p class="start-sub">هدية من خالتج لغالية 💗</p>
+      <button class="primary-btn" id="start-play-btn">يلا نلعب ▶</button>
+    </div>
+  </div>
+
+  <!-- Top HUD -->
+  <div class="hud-top">
+    <div class="hud-group">
+      <a class="sound-btn home-btn" id="back-home" href="index.html#menu" aria-label="رجوع للعبة">🏠</a>
+      <button class="pill-btn" id="open-hub-btn">🗺️ وين نروح اليوم؟</button>
+    </div>
+    <div class="hud-group">
+      <div class="coin-pill" id="coin-pill"><span>🪙</span><span id="coin-count">0</span></div>
+      <button class="sound-btn" id="sound-toggle" aria-label="الصوت">🔊</button>
+    </div>
+  </div>
+
+  <div class="hint-banner" id="hint-banner">✨ امشي بعصا التحكم أو انقري على الأغراض المضيئة</div>
+  <div class="speech-bubble" id="speech-bubble">أهلاً يا غالية! 🌸</div>
+
+  <!-- Joystick -->
+  <div class="joystick-zone" id="joystick-zone"><div class="joystick-knob" id="joystick-knob"></div></div>
+
+  <!-- Contextual Action Button -->
+  <button class="action-btn" id="context-action-btn"><span>✨</span><span id="action-btn-text">تفاعل</span></button>
+
+  <!-- Car Ride HUD -->
+  <div class="car-hud" id="car-hud">
+    <div class="traffic-pill" id="traffic-pill">🟢 الإشارة خضراء! انطلقي</div>
+    <button class="drive-btn" id="drive-btn">🚗 انطلقي</button>
+  </div>
+
+  <!-- Hub Modal: وين نروح اليوم؟ -->
+  <div class="modal-backdrop" id="hub-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">وين نروح اليوم؟ 🌸</h2>
+        <button class="close-btn" data-close="hub-modal">✕</button>
+      </div>
+      <div class="hub-grid">
+        <button class="hub-card" data-world="bedroom"><span class="hub-icon">🛏️</span><span class="hub-name">غرفة غالية (مع خالتها)</span></button>
+        <button class="hub-card" data-world="car"><span class="hub-icon">🚗</span><span class="hub-name">السيارة للمدرسة</span></button>
+        <button class="hub-card" data-world="classroom"><span class="hub-icon">🏫</span><span class="hub-name">غرفة الصف</span></button>
+        <button class="hub-card" data-world="shop"><span class="hub-icon">🛍️</span><span class="hub-name">متجر المدرسة</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bedroom Wardrobe & Bag Modal -->
+  <div class="modal-backdrop" id="bedroom-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">الاستعداد للمدرسة 🎀</h2>
+        <button class="close-btn" data-close="bedroom-modal">✕</button>
+      </div>
+      <p style="margin:4px 0 8px;font-weight:700;">1. اختاري لون فستان غالية المحتشم:</p>
+      <div class="grid-3" id="dress-grid"></div>
+      <div class="bag-dropzone" id="bag-dropzone">🎒 الحقيبة المدرسية (<span id="bag-count">0</span> / 3) — انقري على الأغراض لوضعها في الحقيبة!</div>
+      <div class="grid-3" id="bag-items-grid"></div>
+    </div>
+  </div>
+
+  <!-- Classroom Quiz Modal -->
+  <div class="modal-backdrop" id="minigame-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="progress-pill" id="progress-pill">1 / 5</div>
+        <button class="close-btn" data-close="minigame-modal">✕</button>
+      </div>
+      <div class="question-box">
+        <div class="question-title" id="question-title">اختاري اللون</div>
+        <div class="question-target" id="question-target"></div>
+      </div>
+      <div class="grid-2" id="options-grid"></div>
+      <div class="feedback-text" id="feedback-text"></div>
+    </div>
+  </div>
+
+  <!-- Star Certificate Modal -->
+  <div class="modal-backdrop" id="certificate-modal">
+    <div class="modal-card" style="border-color:#ffd166;background:linear-gradient(180deg,#fffdf5,#fff0f7);">
+      <div style="font-size:52px;">🌟👑🌟</div>
+      <h2 class="modal-title" style="font-size:28px;">شهادة نجمة الصف</h2>
+      <div style="font-size:20px;font-weight:800;color:#7c3f8a;margin:8px 0;">الأميرة الذكية: غالية 🌸</div>
+      <p style="font-weight:700;color:#6d4c68;">أحسنتِ يا غالية! حصلتِ على <strong>10</strong> عملات هدية 🪙✨</p>
+      <button class="primary-btn" id="claim-cert-btn">استلام الجائزة 💕</button>
+    </div>
+  </div>
+
+  <!-- School Shop Modal -->
+  <div class="modal-backdrop" id="shop-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">متجر المدرسة 🛍️</h2>
+        <button class="close-btn" data-close="shop-modal">✕</button>
+      </div>
+      <p style="margin:0 0 8px;font-weight:700;color:#7c3f8a;">اشتري أدوات المدرسة والحلويات بعملاتكِ!</p>
+      <div class="grid-2" id="shop-grid"></div>
+    </div>
+  </div>
+
+  <script src="lib/three.min.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // ==========================================
+      // 1. Save State (Coins, Dress, Owned Items)
+      // ==========================================
+      const SAVE_KEY = 'ghalia_dreamhouse_3d_v1';
+      let state = { coins: 20, dressColor: '#ff9ec4', owned: [], packed: [] };
+      try {
+        const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+        if (saved) state = { ...state, ...saved };
+      } catch (e) {}
+      try { const shared = localStorage.getItem('ghalia_coins'); if (shared !== null && !isNaN(+shared)) state.coins = +shared; } catch (e) {}
+
+      function saveState() {
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); localStorage.setItem('ghalia_coins', String(state.coins)); } catch (e) {}
+      }
+
+      const coinCountEl = document.getElementById('coin-count');
+      const coinPillEl = document.getElementById('coin-pill');
+      function updateCoinsUI(pop = false) {
+        coinCountEl.textContent = String(state.coins);
+        saveState();
+        if (pop) {
+          coinPillEl.classList.remove('pop'); void coinPillEl.offsetWidth; coinPillEl.classList.add('pop');
+        }
+      }
+      updateCoinsUI(false);
+
+      function addCoins(n) { state.coins += n; updateCoinsUI(true); }
+
+      // ==========================================
+      // 2. Web Audio API SFX
+      // ==========================================
+      let audioCtx = null, soundEnabled = true;
+      function ensureAudio() {
+        if (!soundEnabled) return null;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+      function playTone(freq, dur, type = 'sine', vol = 0.11, delay = 0) {
+        const ctx = ensureAudio(); if (!ctx) return;
+        const t = ctx.currentTime + delay;
+        const osc = ctx.createOscillator(), g = ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(0.001, t);
+        g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(t); osc.stop(t + dur + 0.02);
+      }
+      const SFX = {
+        tap: () => { playTone(523, 0.11); playTone(659, 0.12, 'sine', 0.08, 0.05); },
+        coin: () => { playTone(784, 0.12, 'triangle', 0.13); playTone(1046, 0.24, 'triangle', 0.14, 0.08); },
+        soft: () => { playTone(349, 0.14, 'sine', 0.08); playTone(329, 0.15, 'sine', 0.07, 0.08); },
+        fanfare: () => [523, 659, 784, 1046].forEach((n, i) => playTone(n, 0.26, 'triangle', 0.13, i * 0.1))
+      };
+
+      document.getElementById('sound-toggle').addEventListener('click', (e) => {
+        soundEnabled = !soundEnabled;
+        e.target.textContent = soundEnabled ? '🔊' : '🔇';
+        if (soundEnabled) SFX.tap();
+      });
+
+      // UI Helpers
+      const speechEl = document.getElementById('speech-bubble');
+      let speechTimer = null;
+      function showBubble(txt, ms = 2500) {
+        speechEl.textContent = txt; speechEl.classList.add('show');
+        clearTimeout(speechTimer);
+        speechTimer = setTimeout(() => speechEl.classList.remove('show'), ms);
+      }
+      function spawnSparkles(x, y, n = 5) {
+        const icons = ['✨', '🌸', '⭐', '💖'];
+        for (let i = 0; i < n; i++) {
+          const el = document.createElement('div');
+          el.className = 'ui-sparkle'; el.textContent = icons[i % icons.length];
+          el.style.left = (x + (Math.random() - 0.5) * 40) + 'px';
+          el.style.top = (y + (Math.random() - 0.5) * 30) + 'px';
+          document.body.appendChild(el);
+          setTimeout(() => el.remove(), 820);
+        }
+      }
+
+      // ==========================================
+      // 3. Three.js Core Setup
+      // ==========================================
+      const canvas = document.getElementById('game-canvas');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffeef6);
+      scene.fog = new THREE.Fog(0xffeef6, 18, 36);
+
+      const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 80);
+      function onResize() {
+        const w = window.innerWidth, h = window.innerHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.fov = w < h ? 58 : 46;
+        camera.updateProjectionMatrix();
+      }
+      window.addEventListener('resize', onResize);
+      onResize();
+
+      const hemi = new THREE.HemisphereLight(0xfff9ff, 0xffd6e7, 0.94);
+      hemi.position.set(0, 12, 0); scene.add(hemi);
+      const dir = new THREE.DirectionalLight(0xfff5e8, 0.72);
+      dir.position.set(6, 11, 6); dir.castShadow = true;
+      dir.shadow.mapSize.set(1024, 1024);
+      const sd = 9;
+      dir.shadow.camera.left = -sd; dir.shadow.camera.right = sd;
+      dir.shadow.camera.top = sd; dir.shadow.camera.bottom = -sd;
+      scene.add(dir);
+
+      function pastelMat(hex, rough = 0.65) {
+        return new THREE.MeshStandardMaterial({ color: hex, roughness: rough, metalness: 0.05 });
+      }
+
+      // ==========================================
+      // 4. Characters: Ghalia & Khala (Modest 3D)
+      // ==========================================
+      function buildGirlCharacter(dressHex, isAunt = false) {
+        const grp = new THREE.Group();
+        const skirtMat = pastelMat(dressHex);
+        const bodiceMat = pastelMat(dressHex);
+
+        const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.44, isAunt ? 0.92 : 0.78, 20), skirtMat);
+        skirt.position.y = isAunt ? 0.5 : 0.44; skirt.castShadow = true; grp.add(skirt);
+
+        const bodice = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.21, 0.4, 18), bodiceMat);
+        bodice.position.y = isAunt ? 1.12 : 0.96; bodice.castShadow = true; grp.add(bodice);
+
+        const sash = new THREE.Mesh(new THREE.CylinderGeometry(0.215, 0.215, 0.08, 18), pastelMat(0xc79dff));
+        sash.position.y = isAunt ? 0.98 : 0.82; grp.add(sash);
+
+        // Long Sleeves
+        const arms = [];
+        [-1, 1].forEach((side) => {
+          const piv = new THREE.Group();
+          piv.position.set(side * 0.24, isAunt ? 1.26 : 1.08, 0);
+          const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.06, 0.36, 12), bodiceMat);
+          sleeve.position.y = -0.18; sleeve.castShadow = true; piv.add(sleeve);
+          const hand = new THREE.Mesh(new THREE.SphereGeometry(0.056, 12, 12), pastelMat(0xfcd5b5));
+          hand.position.y = -0.38; piv.add(hand);
+          grp.add(piv); arms.push(piv);
+        });
+
+        const headGrp = new THREE.Group();
+        headGrp.position.y = isAunt ? 1.56 : 1.38;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 22, 22), pastelMat(0xfcd5b5, 0.7));
+        head.castShadow = true; headGrp.add(head);
+
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0x3b2338 });
+        [-0.09, 0.09].forEach((ex) => {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 10), eyeMat);
+          eye.position.set(ex, 0.02, 0.24); headGrp.add(eye);
+        });
+        const cheekMat = new THREE.MeshBasicMaterial({ color: 0xff9ebc });
+        [-0.15, 0.15].forEach((cx) => {
+          const ch = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10), cheekMat);
+          ch.position.set(cx, -0.05, 0.21); headGrp.add(ch);
+        });
+
+        // Hair / Modest Headscarf for Aunt
+        if (isAunt) {
+          const hijab = new THREE.Mesh(new THREE.SphereGeometry(0.295, 22, 22), pastelMat(0xf3d1ff));
+          hijab.position.set(0, 0.02, -0.03); headGrp.add(hijab);
+          const drape = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.32, 16), pastelMat(0xf3d1ff));
+          drape.position.set(0, -0.22, -0.04); headGrp.add(drape);
+        } else {
+          const hairMat = pastelMat(0x4a2c2a);
+          const cap = new THREE.Mesh(new THREE.SphereGeometry(0.285, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.62), hairMat);
+          cap.rotation.x = -0.22; headGrp.add(cap);
+          [-0.24, 0.24].forEach((bx) => {
+            const bun = new THREE.Mesh(new THREE.SphereGeometry(0.115, 12, 12), hairMat);
+            bun.position.set(bx, 0.16, -0.06); headGrp.add(bun);
+          });
+          const bowMat = pastelMat(0xff6fa8);
+          [-0.07, 0.07].forEach((bx, idx) => {
+            const bow = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.13, 8), bowMat);
+            bow.rotation.z = idx === 0 ? -Math.PI / 2 : Math.PI / 2;
+            bow.position.set(bx, 0.28, 0.05); headGrp.add(bow);
+          });
+        }
+        grp.add(headGrp);
+
+        // Backpack & Crown Accessories on Ghalia (unlocked in Shop!)
+        let backpack = null, crown = null;
+        if (!isAunt) {
+          backpack = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.34, 0.18), pastelMat(0x8be8d5));
+          backpack.position.set(0, 0.94, -0.26);
+          backpack.visible = state.owned.includes('backpack');
+          grp.add(backpack);
+
+          crown = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.16, 6), pastelMat(0xffd166, 0.3));
+          crown.position.set(0, 0.36, 0.02);
+          crown.visible = state.owned.includes('crown');
+          headGrp.add(crown);
+        }
+
+        grp.userData = { skirtMat, bodiceMat, arms, headGrp, backpack, crown };
+        return grp;
+      }
+
+      const ghalia = buildGirlCharacter(state.dressColor, false);
+      scene.add(ghalia);
+
+      function refreshGhaliaAppearance() {
+        ghalia.userData.skirtMat.color.set(state.dressColor);
+        ghalia.userData.bodiceMat.color.set(state.dressColor);
+        if (ghalia.userData.backpack) ghalia.userData.backpack.visible = state.owned.includes('backpack');
+        if (ghalia.userData.crown) ghalia.userData.crown.visible = state.owned.includes('crown');
+      }
+
+      // ==========================================
+      // 5. World Builder (4 Connected 3D Worlds)
+      // ==========================================
+      const worldGroup = new THREE.Group();
+      scene.add(worldGroup);
+      let currentWorld = 'bedroom';
+      let interactiveObjects = [];
+      let floorMesh = null;
+      let animatedProps = [];
+
+      function addGlowRing(x, z, radius = 0.85, color = 0xff85b3) {
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(radius, radius + 0.16, 30),
+          new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(x, 0.04, z);
+        worldGroup.add(ring);
+        animatedProps.push({ type: 'pulse', mesh: ring });
+        return ring;
+      }
+
+      function addFloatingStar(x, y, z) {
+        const star = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.22, 0),
+          new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xffaa00, emissiveIntensity: 0.45, roughness: 0.25 })
+        );
+        star.position.set(x, y, z);
+        worldGroup.add(star);
+        animatedProps.push({ type: 'float', mesh: star, baseY: y });
+      }
+
+      function makeRoomBase(floorHex, wallHex, rugHex) {
+        floorMesh = new THREE.Mesh(new THREE.BoxGeometry(12, 0.2, 11), pastelMat(floorHex, 0.8));
+        floorMesh.position.y = -0.1; floorMesh.receiveShadow = true; worldGroup.add(floorMesh);
+
+        const rug = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.3, 0.03, 32), pastelMat(rugHex, 0.9));
+        rug.position.set(0, 0.015, 0.4); rug.receiveShadow = true; worldGroup.add(rug);
+
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(12, 4.6, 0.25), pastelMat(wallHex, 0.85));
+        backWall.position.set(0, 2.3, -5.4); worldGroup.add(backWall);
+
+        const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.25, 4.6, 11), pastelMat(wallHex, 0.85));
+        leftWall.position.set(-5.9, 2.3, 0); worldGroup.add(leftWall);
+
+        const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.25, 4.6, 11), pastelMat(wallHex, 0.85));
+        rightWall.position.set(5.9, 2.3, 0); worldGroup.add(rightWall);
+      }
+
+      // --- WORLD 1: BEDROOM (with Khala!) ---
+      function buildBedroom() {
+        makeRoomBase(0xfff7ee, 0xfff0f6, 0xffcde2);
+        // Cute Dreamhouse Bed
+        const bed = new THREE.Group();
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.45, 3.0), pastelMat(0xffb3d1));
+        frame.position.y = 0.25; frame.castShadow = true; bed.add(frame);
+        const mattress = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.25, 2.8), pastelMat(0xffffff));
+        mattress.position.y = 0.55; bed.add(mattress);
+        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.24, 0.27, 1.8), pastelMat(0xd4a8ff));
+        blanket.position.set(0, 0.56, 0.5); bed.add(blanket);
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.2, 0.6), pastelMat(0xffe082));
+        pillow.position.set(0, 0.72, -0.95); bed.add(pillow);
+        bed.position.set(-3.4, 0, -3.2); worldGroup.add(bed);
+
+        // Glowing Wardrobe
+        const wardrobe = new THREE.Group();
+        const wBody = new THREE.Mesh(new THREE.BoxGeometry(1.9, 2.7, 0.9), pastelMat(0xffffff));
+        wBody.position.y = 1.35; wBody.castShadow = true; wardrobe.add(wBody);
+        const wTrim = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.96), pastelMat(0xff9ec4));
+        wTrim.position.y = 2.7; wardrobe.add(wTrim);
+        wardrobe.position.set(3.4, 0, -4.4);
+        wardrobe.userData = { interactType: 'bedroom', spot: new THREE.Vector3(2.8, 0, -3.0) };
+        worldGroup.add(wardrobe);
+        interactiveObjects.push(wardrobe);
+        addGlowRing(3.4, -3.5, 0.9, 0xc79dff);
+        addFloatingStar(3.4, 3.1, -4.4);
+
+        // Khala (Aunt) standing warmly in the bedroom!
+        const khala = buildGirlCharacter('#d4a8ff', true);
+        khala.position.set(0.6, 0, -2.5);
+        khala.rotation.y = -0.3;
+        khala.userData.interactType = 'khala';
+        khala.userData.spot = new THREE.Vector3(0.2, 0, -1.3);
+        worldGroup.add(khala);
+        interactiveObjects.push(khala);
+        animatedProps.push({ type: 'idle', mesh: khala });
+
+        ghalia.position.set(-0.5, 0, 2.2);
+        ghalia.rotation.y = Math.PI;
+        showBubble('صباح الخير يا غالية! يلا نختار اللبس ونجهز الشنطة 💗', 3200);
+      }
+
+      // --- WORLD 2: CAR RIDE ---
+      let carGroup = null, carZ = 22, isDriving = false, trafficGreen = true, trafficTimer = 0, carPassedLights = 0;
+      function buildCarWorld() {
+        scene.background = new THREE.Color(0xdbf4ff);
+        scene.fog = new THREE.Fog(0xdbf4ff, 20, 48);
+
+        // Road & Grass
+        const grass = new THREE.Mesh(new THREE.BoxGeometry(40, 0.2, 80), pastelMat(0xcaf7d8, 0.9));
+        grass.position.set(0, -0.1, -10); grass.receiveShadow = true; worldGroup.add(grass);
+        const road = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.22, 80), pastelMat(0x8d8d9e, 0.85));
+        road.position.set(0, -0.08, -10); road.receiveShadow = true; worldGroup.add(road);
+
+        // Pastel Trees & Houses along road
+        for (let z = 20; z >= -36; z -= 8) {
+          [-4.8, 4.8].forEach((x) => {
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 1.1, 10), pastelMat(0xc99c7c));
+            trunk.position.set(x, 0.55, z); worldGroup.add(trunk);
+            const top = new THREE.Mesh(new THREE.SphereGeometry(0.85, 14, 14), pastelMat(0x8be8d5));
+            top.position.set(x, 1.6, z); worldGroup.add(top);
+          });
+        }
+
+        // Traffic Light Gate
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 3.6, 10), pastelMat(0xffffff));
+        pole.position.set(3.2, 1.8, -16); worldGroup.add(pole);
+        const lightBox = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.4, 0.5), pastelMat(0x5c3a58));
+        lightBox.position.set(3.2, 3.2, -16); worldGroup.add(lightBox);
+
+        // Cute Pink Dreamhouse Car
+        carGroup = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.7, 3.0), pastelMat(0xff85b3));
+        body.position.y = 0.55; body.castShadow = true; carGroup.add(body);
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.55, 1.5), pastelMat(0xffffff));
+        cabin.position.set(0, 1.1, 0.1); carGroup.add(cabin);
+        [[-0.95, -0.9], [0.95, -0.9], [-0.95, 0.9], [0.95, 0.9]].forEach(([wx, wz]) => {
+          const w = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.24, 16), pastelMat(0x4a3b47));
+          w.rotation.z = Math.PI / 2; w.position.set(wx, 0.35, wz); carGroup.add(w);
+        });
+        carZ = 22;
+        carGroup.position.set(0, 0, carZ);
+        worldGroup.add(carGroup);
+
+        isDriving = false; trafficGreen = true; trafficTimer = 0; carPassedLights = 0;
+        updateCarHUD();
+        showBubble('اضغطي انطلقي عند اللون الأخضر وتوقفي عند الأحمر! 🚗', 3200);
+      }
+
+      // --- WORLD 3: CLASSROOM ---
+      function buildClassroom() {
+        makeRoomBase(0xfff7ee, 0xfff0f6, 0xffcde2);
+        // Whiteboard
+        const board = new THREE.Group();
+        const bFrame = new THREE.Mesh(new THREE.BoxGeometry(4.6, 2.2, 0.14), pastelMat(0xd4a8ff));
+        board.add(bFrame);
+        const wbC = document.createElement('canvas'); wbC.width = 512; wbC.height = 256;
+        const ctx = wbC.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 512, 256);
+        ctx.strokeStyle = '#ffd1e6'; ctx.lineWidth = 10; ctx.strokeRect(10, 10, 492, 236);
+        ctx.fillStyle = '#d64584'; ctx.font = 'bold 42px Tajawal, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('أهلاً بكم في الصف 🌸', 256, 105);
+        ctx.fillStyle = '#7c3f8a'; ctx.font = 'bold 30px Tajawal, sans-serif';
+        ctx.fillText('أ  •  ب  •  ت  •  ⭐', 256, 175);
+        const bSurf = new THREE.Mesh(new THREE.BoxGeometry(4.25, 1.88, 0.16), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(wbC) }));
+        board.add(bSurf);
+        board.position.set(0, 2.45, -5.2);
+        board.userData = { interactType: 'classroom', spot: new THREE.Vector3(0, 0, -0.35) };
+        worldGroup.add(board); interactiveObjects.push(board);
+
+        // Desks
+        function desk(x, z, col, isMain) {
+          const g = new THREE.Group();
+          const top = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.12, 0.85), pastelMat(0xffffff));
+          top.position.y = 0.78; top.castShadow = true; g.add(top);
+          const rim = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 0.9), pastelMat(col));
+          rim.position.y = 0.74; g.add(rim);
+          [[-0.55,-0.32],[0.55,-0.32],[-0.55,0.32],[0.55,0.32]].forEach(([lx,lz]) => {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.74,10), pastelMat(0xb5f2e4));
+            leg.position.set(lx, 0.37, lz); g.add(leg);
+          });
+          const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.08,18), pastelMat(col));
+          seat.position.set(0, 0.44, 0.72); g.add(seat);
+          g.position.set(x, 0, z);
+          if (isMain) {
+            g.userData = { interactType: 'classroom', spot: new THREE.Vector3(0, 0, -0.35) };
+            interactiveObjects.push(g);
+            addGlowRing(0, -1.35, 0.88, 0xff85b3);
+            addFloatingStar(0, 1.45, -1.6);
+          }
+          worldGroup.add(g);
+        }
+        desk(0, -1.6, 0xff9ec4, true);
+        desk(-2.4, -1.6, 0xb5f2e4, false);
+        desk(2.4, -1.6, 0xd4a8ff, false);
+
+        ghalia.position.set(0, 0, 2.4); ghalia.rotation.y = Math.PI;
+        showBubble('انقري على المقعد المضيء لبدء الدرس! 📚', 2600);
+      }
+
+      // --- WORLD 4: SCHOOL SHOP ---
+      function buildShop() {
+        makeRoomBase(0xfff7ee, 0xfff5fb, 0xb5f2e4);
+        const counter = new THREE.Group();
+        const base = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.0, 1.2), pastelMat(0xffb3d1));
+        base.position.y = 0.5; base.castShadow = true; counter.add(base);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.14, 1.35), pastelMat(0xffffff));
+        top.position.y = 1.05; counter.add(top);
+
+        // Cute 3D Treats & Supplies on Counter
+        [0x8be8d5, 0xffd166, 0xc79dff, 0xff85b3].forEach((c, i) => {
+          const item = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.16, 0.32, 14), pastelMat(c));
+          item.position.set(-1.3 + i * 0.85, 1.28, 0); counter.add(item);
+        });
+        counter.position.set(0, 0, -2.6);
+        counter.userData = { interactType: 'shop', spot: new THREE.Vector3(0, 0, -1.1) };
+        worldGroup.add(counter);
+        interactiveObjects.push(counter);
+        addGlowRing(0, -1.5, 0.95, 0xffd166);
+        addFloatingStar(0, 2.0, -2.6);
+
+        ghalia.position.set(0, 0, 2.3); ghalia.rotation.y = Math.PI;
+        showBubble('مرحباً في متجر المدرسة! اشتري ما تحبين بعملاتكِ 🛍️', 2800);
+      }
+
+      // ==========================================
+      // 6. Scene Switcher
+      // ==========================================
+      const joyZone = document.getElementById('joystick-zone');
+      const actionBtn = document.getElementById('context-action-btn');
+      const actionBtnText = document.getElementById('action-btn-text');
+      const carHud = document.getElementById('car-hud');
+      const hintBanner = document.getElementById('hint-banner');
+
+      function switchWorld(name) {
+        currentWorld = name;
+        while (worldGroup.children.length) worldGroup.remove(worldGroup.children[0]);
+        interactiveObjects = [];
+        animatedProps = [];
+        walkTarget = null; pendingInteract = null;
+        scene.background = new THREE.Color(0xffeef6);
+        scene.fog = new THREE.Fog(0xffeef6, 18, 36);
+
+        const isCar = name === 'car';
+        ghalia.visible = !isCar;
+        joyZone.classList.toggle('hidden', isCar);
+        actionBtn.classList.toggle('hidden', isCar);
+        carHud.classList.toggle('active', isCar);
+
+        if (name === 'bedroom') {
+          buildBedroom();
+          actionBtnText.textContent = 'اللبس والشنطة 🎀';
+          hintBanner.textContent = '✨ انقري على الخزانة أو خالتكِ للتجهيز للمدرسة';
+        } else if (name === 'car') {
+          buildCarWorld();
+          hintBanner.textContent = '🚦 توقفي عند الأحمر وانطلقي عند الأخضر!';
+        } else if (name === 'classroom') {
+          buildClassroom();
+          actionBtnText.textContent = 'هيا للدرس! 📚';
+          hintBanner.textContent = '✨ انقري على المقعد المضيء لجمع العملات';
+        } else if (name === 'shop') {
+          buildShop();
+          actionBtnText.textContent = 'فتح المتجر 🛍️';
+          hintBanner.textContent = '✨ انقري على المتجر لشراء الشنطة والحلويات';
+        }
+
+        document.querySelectorAll('.hub-card').forEach((c) => {
+          c.classList.toggle('active-world', c.dataset.world === name);
+        });
+      }
+
+      // ==========================================
+      // 7. Controls (Joystick + Tap-to-Walk + Raycast)
+      // ==========================================
+      const joyKnob = document.getElementById('joystick-knob');
+      let joyTouchId = null, joyX = 0, joyY = 0, walkTarget = null, pendingInteract = null, isModalOpen = false;
+
+      function updateJoy(cx, cy) {
+        const r = joyZone.getBoundingClientRect();
+        const mx = r.width * 0.36;
+        let dx = cx - (r.left + r.width / 2), dy = cy - (r.top + r.height / 2);
+        const d = Math.hypot(dx, dy);
+        if (d > mx) { dx = (dx / d) * mx; dy = (dy / d) * mx; }
+        joyKnob.style.transform = `translate(${dx}px,${dy}px)`;
+        joyX = dx / mx; joyY = dy / mx;
+        if (Math.hypot(joyX, joyY) > 0.12) { walkTarget = null; pendingInteract = null; }
+      }
+      function resetJoy() { joyTouchId = null; joyX = 0; joyY = 0; joyKnob.style.transform = 'translate(0,0)'; }
+
+      joyZone.addEventListener('touchstart', (e) => {
+        e.preventDefault(); ensureAudio();
+        const t = e.changedTouches[0]; joyTouchId = t.identifier; updateJoy(t.clientX, t.clientY);
+      }, { passive: false });
+      window.addEventListener('touchmove', (e) => {
+        if (joyTouchId === null) return;
+        for (const t of e.changedTouches) if (t.identifier === joyTouchId) { updateJoy(t.clientX, t.clientY); break; }
+      }, { passive: false });
+      window.addEventListener('touchend', (e) => {
+        for (const t of e.changedTouches) if (t.identifier === joyTouchId) resetJoy();
+      });
+
+      const raycaster = new THREE.Raycaster(), ptr = new THREE.Vector2();
+      canvas.addEventListener('pointerdown', (e) => {
+        if (isModalOpen || currentWorld === 'car') return;
+        ensureAudio();
+        ptr.x = (e.clientX / window.innerWidth) * 2 - 1;
+        ptr.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(ptr, camera);
+
+        const hits = raycaster.intersectObjects(interactiveObjects, true);
+        if (hits.length > 0) {
+          let obj = hits[0].object;
+          while (obj && !obj.userData.interactType) obj = obj.parent;
+          if (obj) {
+            SFX.tap(); spawnSparkles(e.clientX, e.clientY, 5);
+            triggerInteract(obj.userData.interactType, obj.userData.spot);
+            return;
+          }
+        }
+        if (floorMesh) {
+          const fHits = raycaster.intersectObject(floorMesh);
+          if (fHits.length > 0) {
+            const p = fHits[0].point;
+            walkTarget = new THREE.Vector3(THREE.MathUtils.clamp(p.x, -4.8, 4.3), 0, THREE.MathUtils.clamp(p.z, -4.2, 4.4));
+            pendingInteract = null;
+            SFX.tap();
+          }
+        }
+      });
+
+      function triggerInteract(type, spot) {
+        if (type === 'khala') {
+          showBubble('يلا يا بطلة اختاري فستانكِ وجهزي شنطتكِ 💕', 2600);
+          openBedroomModal();
+          return;
+        }
+        if (spot && ghalia.position.distanceTo(spot) > 1.2) {
+          walkTarget = spot.clone();
+          pendingInteract = type;
+        } else {
+          openContextModal(type);
+        }
+      }
+
+      function openContextModal(type) {
+        if (type === 'bedroom') openBedroomModal();
+        else if (type === 'classroom') openClassroomModal();
+        else if (type === 'shop') openShopModal();
+      }
+
+      actionBtn.addEventListener('click', () => {
+        ensureAudio(); SFX.tap();
+        openContextModal(currentWorld);
+      });
+
+      // ==========================================
+      // 8. Modals: Hub, Bedroom, Classroom, Shop
+      // ==========================================
+      function openModal(id) { isModalOpen = true; document.getElementById(id).classList.add('open'); }
+      function closeModal(id) { isModalOpen = false; document.getElementById(id).classList.remove('open'); }
+      document.querySelectorAll('[data-close]').forEach((btn) => {
+        btn.addEventListener('click', () => { SFX.tap(); closeModal(btn.dataset.close); });
+      });
+
+      document.getElementById('start-play-btn').addEventListener('click', () => {
+        ensureAudio(); SFX.fanfare();
+        document.getElementById('start-overlay').classList.add('hidden');
+        switchWorld('bedroom');
+      });
+
+      document.getElementById('open-hub-btn').addEventListener('click', () => {
+        ensureAudio(); SFX.tap(); openModal('hub-modal');
+      });
+      document.querySelectorAll('.hub-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          SFX.tap(); closeModal('hub-modal');
+          switchWorld(card.dataset.world);
+        });
+      });
+
+      // --- Bedroom Modal (Dress + Bag Packing) ---
+      const DRESSES = [
+        { name: 'وردي', hex: '#ff9ec4' },
+        { name: 'بنفسجي', hex: '#c79dff' },
+        { name: 'سماوي', hex: '#8ce0ff' }
+      ];
+      const BAG_ITEMS = [
+        { id: 'book', name: 'كتاب', icon: '📘' },
+        { id: 'pencil', name: 'أقلام', icon: '🖍️' },
+        { id: 'water', name: 'ماء', icon: '🧃' }
+      ];
+
+      function openBedroomModal() {
+        const dg = document.getElementById('dress-grid'); dg.innerHTML = '';
+        DRESSES.forEach((d) => {
+          const btn = document.createElement('button');
+          btn.className = 'item-card' + (state.dressColor === d.hex ? ' packed' : '');
+          btn.innerHTML = `<span class="swatch" style="background:${d.hex}"></span><b>${d.name}</b>`;
+          btn.onclick = (e) => {
+            SFX.tap(); state.dressColor = d.hex; saveState();
+            refreshGhaliaAppearance(); spawnSparkles(e.clientX, e.clientY, 5);
+            openBedroomModal();
+          };
+          dg.appendChild(btn);
+        });
+
+        const bg = document.getElementById('bag-items-grid'); bg.innerHTML = '';
+        document.getElementById('bag-count').textContent = String(state.packed.length);
+        BAG_ITEMS.forEach((it) => {
+          const isPacked = state.packed.includes(it.id);
+          const btn = document.createElement('button');
+          btn.className = 'item-card' + (isPacked ? ' packed' : '');
+          btn.innerHTML = `<span style="font-size:32px">${it.icon}</span><b>${it.name}</b>`;
+          btn.onclick = (e) => {
+            if (isPacked) return;
+            SFX.coin(); state.packed.push(it.id); addCoins(2);
+            spawnSparkles(e.clientX, e.clientY, 5);
+            if (state.packed.length === BAG_ITEMS.length) {
+              showBubble('شنطتكِ جاهزة! هيا للسيارة 🚗✨', 2600);
+            }
+            openBedroomModal();
+          };
+          bg.appendChild(btn);
+        });
+        openModal('bedroom-modal');
+      }
+
+      // --- Car Ride Controls ---
+      const trafficPill = document.getElementById('traffic-pill');
+      const driveBtn = document.getElementById('drive-btn');
+      function updateCarHUD() {
+        trafficPill.textContent = trafficGreen ? '🟢 الإشارة خضراء! انطلقي' : '🔴 الإشارة حمراء! توقفي';
+        driveBtn.textContent = isDriving ? '🛑 توقف' : '🚗 انطلقي';
+        driveBtn.classList.toggle('stop-mode', isDriving);
+      }
+      driveBtn.addEventListener('click', () => {
+        ensureAudio(); SFX.tap();
+        if (!trafficGreen && !isDriving) {
+          showBubble('انتظري اللون الأخضر يا غالية! 🔴', 1600);
+          return;
+        }
+        isDriving = !isDriving;
+        updateCarHUD();
+      });
+
+      // --- Classroom Quiz (Arabic Colors & Letters) ---
+      const COLORS_POOL = [
+        { name: 'وردي', hex: '#ff85b3' }, { name: 'أزرق', hex: '#7cc6fe' },
+        { name: 'أصفر', hex: '#ffd166' }, { name: 'أخضر', hex: '#7ae582' },
+        { name: 'بنفسجي', hex: '#c79dff' }, { name: 'برتقالي', hex: '#ff9f68' }
+      ];
+      const LETTERS_POOL = [
+        { letter: 'أ', word: 'أرنب', emoji: '🐰' }, { letter: 'ب', word: 'بطة', emoji: '🦆' },
+        { letter: 'ت', word: 'تفاحة', emoji: '🍎' }, { letter: 'ج', word: 'جمل', emoji: '🐪' },
+        { letter: 'س', word: 'سمكة', emoji: '🐟' }, { letter: 'ن', word: 'نجمة', emoji: '⭐' }
+      ];
+      let quizQs = [], qIdx = 0, qLock = false;
+      const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
+
+      function openClassroomModal() {
+        quizQs = Array.from({ length: 5 }, (_, i) => {
+          if (i % 2 === 0) {
+            const c = shuffle(COLORS_POOL).slice(0, 4);
+            return { type: 'color', target: c[0], choices: shuffle(c) };
+          }
+          const l = shuffle(LETTERS_POOL).slice(0, 4);
+          return { type: 'letter', target: l[0], choices: shuffle(l) };
+        });
+        qIdx = 0; renderQuiz(); openModal('minigame-modal');
+      }
+
+      function renderQuiz() {
+        const q = quizQs[qIdx];
+        document.getElementById('progress-pill').textContent = `${qIdx + 1} / 5`;
+        document.getElementById('feedback-text').textContent = '';
+        const grid = document.getElementById('options-grid'); grid.innerHTML = '';
+        if (q.type === 'color') {
+          document.getElementById('question-title').textContent = 'اختاري اللون المطلوب 🎨';
+          document.getElementById('question-target').innerHTML = `<span class="swatch" style="background:${q.target.hex}"></span><span>${q.target.name}</span>`;
+          q.choices.forEach((c) => {
+            const btn = document.createElement('button'); btn.className = 'item-card';
+            btn.innerHTML = `<span class="swatch" style="background:${c.hex}"></span><b>${c.name}</b>`;
+            btn.onclick = () => checkAns(c.name === q.target.name, btn);
+            grid.appendChild(btn);
+          });
+        } else {
+          document.getElementById('question-title').textContent = 'ابحثي عن الحرف الجميل ✨';
+          document.getElementById('question-target').innerHTML = `<span>${q.target.letter}</span><span>${q.target.emoji}</span>`;
+          q.choices.forEach((c) => {
+            const btn = document.createElement('button'); btn.className = 'item-card';
+            btn.innerHTML = `<span style="font-size:32px;font-weight:800">${c.letter}</span><b>${c.emoji} ${c.word}</b>`;
+            btn.onclick = () => checkAns(c.letter === q.target.letter, btn);
+            grid.appendChild(btn);
+          });
+        }
+      }
+
+      function checkAns(ok, btn) {
+        if (qLock) return;
+        const fb = document.getElementById('feedback-text');
+        if (ok) {
+          qLock = true; btn.classList.add('correct-pop'); SFX.coin(); addCoins(5);
+          const r = btn.getBoundingClientRect(); spawnSparkles(r.left + r.width / 2, r.top + r.height / 2, 6);
+          fb.textContent = 'ممتازة يا غالية! +5 عملات 🌟';
+          setTimeout(() => {
+            qLock = false; qIdx++;
+            if (qIdx >= 5) { closeModal('minigame-modal'); SFX.fanfare(); openModal('certificate-modal'); }
+            else renderQuiz();
+          }, 800);
+        } else {
+          SFX.soft(); btn.classList.remove('wiggle'); void btn.offsetWidth; btn.classList.add('wiggle');
+          fb.textContent = 'جربي بطاقة أخرى يا أميرة 💕';
+        }
+      }
+
+      document.getElementById('claim-cert-btn').addEventListener('click', (e) => {
+        SFX.coin(); addCoins(10); spawnSparkles(e.clientX, e.clientY, 8);
+        closeModal('certificate-modal');
+        showBubble('حصلتِ على نجمة الصف! 🌟', 2600);
+      });
+
+      // --- Shop Modal ---
+      const SHOP_ITEMS = [
+        { id: 'backpack', name: 'شنطة ظهر', icon: '🎒', price: 15 },
+        { id: 'crown', name: 'تاج الأميرة', icon: '👑', price: 20 },
+        { id: 'cupcake', name: 'كب كيك', icon: '🧁', price: 5 },
+        { id: 'juice', name: 'عصير فراولة', icon: '🧃', price: 5 },
+        { id: 'icecream', name: 'آيس كريم', icon: '🍦', price: 8 },
+        { id: 'pencilcase', name: 'مقلمة ملونة', icon: '✏️', price: 10 }
+      ];
+
+      function openShopModal() {
+        const sg = document.getElementById('shop-grid'); sg.innerHTML = '';
+        SHOP_ITEMS.forEach((it) => {
+          const owned = state.owned.includes(it.id);
+          const btn = document.createElement('button');
+          btn.className = 'item-card' + (owned ? ' owned' : '');
+          btn.innerHTML = `<span style="font-size:34px">${it.icon}</span><b>${it.name}</b><span style="color:#8a5a00;font-weight:800">${owned ? 'تم الشراء ✓' : it.price + ' 🪙'}</span>`;
+          btn.onclick = (e) => {
+            if (owned) { showBubble('لديكِ هذا الغرض بالفعل! 💕', 1600); return; }
+            if (state.coins < it.price) {
+              SFX.soft(); btn.classList.add('wiggle');
+              showBubble('تحتاجين عملات أكثر! العبي في الصف 🪙', 2000);
+              return;
+            }
+            SFX.coin(); state.coins -= it.price; state.owned.push(it.id);
+            updateCoinsUI(true); refreshGhaliaAppearance();
+            spawnSparkles(e.clientX, e.clientY, 7);
+            showBubble(`مبروك ${it.name}! 🎉`, 2000);
+            openShopModal();
+          };
+          sg.appendChild(btn);
+        });
+        openModal('shop-modal');
+      }
+
+      // ==========================================
+      // 9. Main 3D Animation Loop
+      // ==========================================
+      const clock = new THREE.Clock();
+      let walkPhase = 0;
+
+      function lerpAngle(a, b, t) {
+        let d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
+        if (d < -Math.PI) d += Math.PI * 2;
+        return a + d * Math.min(1, t);
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        const t = clock.elapsedTime;
+
+        animatedProps.forEach((p) => {
+          if (p.type === 'float') { p.mesh.position.y = p.baseY + Math.sin(t * 2.5) * 0.1; p.mesh.rotation.y += dt * 1.3; }
+          else if (p.type === 'pulse') { p.mesh.material.opacity = 0.4 + Math.sin(t * 3.2) * 0.25; }
+          else if (p.type === 'idle') { p.mesh.position.y = Math.sin(t * 2) * 0.025; }
+        });
+
+        if (currentWorld === 'car' && carGroup) {
+          trafficTimer += dt;
+          if (trafficTimer > 4.2) {
+            trafficTimer = 0; trafficGreen = !trafficGreen;
+            if (!trafficGreen && isDriving) { isDriving = false; showBubble('إشارة حمراء! توقفنا في الوقت المناسب 🔴', 1800); }
+            updateCarHUD();
+          }
+          if (isDriving && trafficGreen) {
+            carZ -= dt * 7.5;
+            carGroup.position.z = carZ;
+            carGroup.position.y = Math.sin(t * 16) * 0.02;
+            if (carZ < -20) {
+              isDriving = false; carZ = 22; carGroup.position.z = carZ;
+              SFX.fanfare(); addCoins(10);
+              showBubble('وصلنا للمدرسة! +10 عملات 🏫🎉', 2800);
+              updateCarHUD();
+            }
+          }
+          camera.position.lerp(new THREE.Vector3(0, 3.8, carZ + 6.5), dt * 5);
+          camera.lookAt(0, 0.8, carZ - 3);
+        } else {
+          // Third-person walking in Bedroom, Classroom, Shop
+          let mx = joyX, mz = joyY, walking = false;
+          const spd = 3.2;
+          if (!isModalOpen) {
+            if (Math.hypot(mx, mz) > 0.12) {
+              const len = Math.max(1, Math.hypot(mx, mz));
+              ghalia.position.x += (mx / len) * spd * dt;
+              ghalia.position.z += (mz / len) * spd * dt;
+              ghalia.rotation.y = lerpAngle(ghalia.rotation.y, Math.atan2(mx, mz), dt * 10);
+              walking = true;
+            } else if (walkTarget) {
+              const dx = walkTarget.x - ghalia.position.x, dz = walkTarget.z - ghalia.position.z;
+              const dist = Math.hypot(dx, dz);
+              if (dist > 0.14) {
+                ghalia.position.x += (dx / dist) * spd * dt;
+                ghalia.position.z += (dz / dist) * spd * dt;
+                ghalia.rotation.y = lerpAngle(ghalia.rotation.y, Math.atan2(dx, dz), dt * 10);
+                walking = true;
+              } else {
+                walkTarget = null;
+                if (pendingInteract) { const tp = pendingInteract; pendingInteract = null; openContextModal(tp); }
+              }
+            }
+          }
+          ghalia.position.x = THREE.MathUtils.clamp(ghalia.position.x, -4.8, 4.3);
+          ghalia.position.z = THREE.MathUtils.clamp(ghalia.position.z, -4.1, 4.4);
+
+          const [armL, armR] = ghalia.userData.arms;
+          if (walking) {
+            walkPhase += dt * 11;
+            ghalia.position.y = Math.abs(Math.sin(walkPhase)) * 0.06;
+            armL.rotation.x = Math.sin(walkPhase) * 0.45;
+            armR.rotation.x = -Math.sin(walkPhase) * 0.45;
+          } else {
+            ghalia.position.y = Math.sin(t * 2.2) * 0.02;
+            armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, 0, dt * 8);
+            armR.rotation.x = THREE.MathUtils.lerp(armR.rotation.x, 0, dt * 8);
+          }
+
+          const isPortrait = window.innerWidth < window.innerHeight;
+          const off = isPortrait ? new THREE.Vector3(0, 4.3, 5.8) : new THREE.Vector3(0, 3.6, 5.0);
+          const desired = ghalia.position.clone().add(off);
+          desired.x = THREE.MathUtils.clamp(desired.x, -3.5, 3.5);
+          desired.z = THREE.MathUtils.clamp(desired.z, -1.5, 7.6);
+          camera.position.lerp(desired, dt * 4.5);
+          camera.lookAt(ghalia.position.x, 1.0, ghalia.position.z - 0.6);
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      switchWorld('bedroom');
+      animate();
+    })();
+  </script>
+</body>
+</html>

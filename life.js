@@ -106,7 +106,7 @@ LIFE.onRoom=function(r){
     prop('<svg viewBox="0 0 60 270"><path d="M0 0 h55 q-25 135 0 270 h-55z" fill="#ff9cc8"/></svg>','curt',100,80,56,270,3);prop('<svg viewBox="0 0 60 270"><path d="M60 0 h-55 q25 135 0 270 h55z" fill="#ff9cc8"/></svg>','curt r',344,80,56,270,3);}
   if(id==='bath'){r.timers.push(setInterval(function(){if(Math.random()<.4)bubbleUp(A.rnd(560,940),470);},500));
     prop('<svg viewBox="0 0 10 10"></svg>','',990,330,120,70,6,function(){sfx.water();for(var i=0;i<6;i++)(function(i){setTimeout(function(){var d=document.createElement('div');d.className='drop';d.style.left=(A.rnd(1040,1060))+'px';d.style.top='360px';fx.appendChild(d);var an=d.animate([{transform:'translateY(0)'},{transform:'translateY(30px)',opacity:.2}],{duration:300});an.onfinish=function(){d.remove();};},i*60);})(i);say('المي باردة! 💧');});}
-  if(id==='dress'){doors(80,140,280,300,'linear-gradient(90deg,#ffd0e5,#ffb3d1)');cat(r,650);motes(r,8);}
+  if(id==='dress'){if(!window.V2DRESS)doors(80,140,280,300,'linear-gradient(90deg,#ffd0e5,#ffb3d1)');cat(r,window.V2DRESS?900:650);motes(r,8);}
   if(id==='wardrobe'){cat(r,650);motes(r,10);}
   if(id==='makeup'||id==='masks'||id==='nails'){motes(r,12);}
 };

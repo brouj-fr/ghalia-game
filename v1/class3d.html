@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>عالم غالية - غرفة الصف</title>
+  <link href="fonts/tajawal.css" rel="stylesheet" />
+  <style>
+    :root {
+      --pink: #ff85b3;
+      --pink-soft: #ffe3ef;
+      --lavender: #c79dff;
+      --mint: #8be8d5;
+      --gold: #ffd166;
+      --cream: #fff9fb;
+      --text: #5c3a58;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #ffeef6;
+      font-family: 'Tajawal', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      touch-action: none;
+    }
+
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    /* Top HUD */
+    .hud-top {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: max(14px, env(safe-area-inset-left));
+      right: max(14px, env(safe-area-inset-right));
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .title-pill {
+      background: rgba(255, 255, 255, 0.9);
+      border: 3px solid #ffb3d1;
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-weight: 800;
+      font-size: clamp(15px, 2.8vw, 20px);
+      color: #d64584;
+      box-shadow: 0 6px 16px rgba(255, 133, 179, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: auto;
+    }
+
+    .hud-right-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .coin-pill {
+      background: linear-gradient(135deg, #fff9e6, #ffe8a3);
+      border: 3px solid #ffd166;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-weight: 800;
+      font-size: clamp(16px, 3vw, 21px);
+      color: #8a5a00;
+      box-shadow: 0 6px 16px rgba(255, 209, 102, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      direction: ltr;
+    }
+
+    .coin-pill.pop {
+      animation: popBounce 0.45s ease;
+    }
+
+    .sound-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 3px solid #d9b8ff;
+      background: rgba(255, 255, 255, 0.92);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(199, 157, 255, 0.3);
+    }
+
+    /* Hint Banner */
+    .hint-banner {
+      position: fixed;
+      top: max(66px, calc(env(safe-area-inset-top) + 56px));
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.92);
+      border: 2px solid #b5f2e4;
+      border-radius: 999px;
+      padding: 6px 18px;
+      font-size: clamp(13px, 2.5vw, 16px);
+      font-weight: 700;
+      color: #3d7a6e;
+      box-shadow: 0 4px 14px rgba(139, 232, 213, 0.35);
+      z-index: 18;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Speech Bubble */
+    .speech-bubble {
+      position: fixed;
+      bottom: max(155px, 22vh);
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: #ffffff;
+      border: 3px solid #ff9ec4;
+      border-radius: 22px;
+      padding: 10px 18px;
+      font-size: clamp(15px, 3vw, 18px);
+      font-weight: 700;
+      color: #b8326a;
+      box-shadow: 0 8px 20px rgba(255, 133, 179, 0.28);
+      z-index: 25;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      max-width: 85vw;
+      text-align: center;
+    }
+
+    .speech-bubble.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    /* Bottom-left Joystick (always bottom-left regardless of RTL) */
+    .joystick-zone {
+      position: fixed;
+      left: max(18px, env(safe-area-inset-left));
+      bottom: max(18px, env(safe-area-inset-bottom));
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.65), rgba(255,194,221,0.45));
+      border: 3px solid rgba(255, 133, 179, 0.75);
+      box-shadow: 0 8px 20px rgba(255, 133, 179, 0.25);
+      z-index: 22;
+      touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .joystick-knob {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ff9ec4, #ff6fa8);
+      border: 3px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(214, 69, 132, 0.4);
+      transform: translate(0px, 0px);
+      pointer-events: none;
+    }
+
+    /* Quick Action Button (bottom-right) */
+    .desk-action-btn {
+      position: fixed;
+      right: max(18px, env(safe-area-inset-right));
+      bottom: max(24px, env(safe-area-inset-bottom));
+      background: linear-gradient(135deg, #ff85b3, #c79dff);
+      color: #ffffff;
+      border: 3px solid #ffffff;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-family: inherit;
+      font-size: clamp(14px, 2.8vw, 17px);
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(199, 157, 255, 0.45);
+      cursor: pointer;
+      z-index: 22;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      animation: gentleFloat 2.2s ease-in-out infinite;
+    }
+
+    /* Mini-Game & Certificate Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(92, 58, 88, 0.35);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 40;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .modal-card {
+      width: min(500px, 94vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #ffffff 0%, #fff4f9 100%);
+      border: 4px solid #ffb3d1;
+      border-radius: 30px;
+      padding: 20px 18px;
+      box-shadow: 0 18px 40px rgba(214, 69, 132, 0.28);
+      text-align: center;
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .progress-pill {
+      background: #f3e8ff;
+      border: 2px solid #d9b8ff;
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-weight: 800;
+      font-size: 14px;
+      color: #6b3fa0;
+      direction: ltr;
+    }
+
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #ffc2dd;
+      background: #fff0f6;
+      color: #d64584;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .question-box {
+      background: #ffffff;
+      border: 3px dashed #c79dff;
+      border-radius: 22px;
+      padding: 14px 12px;
+      margin: 10px 0 16px;
+    }
+
+    .question-title {
+      font-size: clamp(18px, 4vw, 23px);
+      font-weight: 800;
+      color: #7c3f8a;
+      margin: 0 0 6px;
+    }
+
+    .question-target {
+      font-size: clamp(30px, 7vw, 44px);
+      font-weight: 800;
+      color: #d64584;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 54px;
+    }
+
+    .color-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 3px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      display: inline-block;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .option-card {
+      background: #ffffff;
+      border: 3px solid #ffd1e6;
+      border-radius: 22px;
+      padding: 14px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 94px;
+      box-shadow: 0 6px 14px rgba(255, 133, 179, 0.16);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      font-family: inherit;
+    }
+
+    .option-card:active {
+      transform: scale(0.95);
+    }
+
+    .option-card.wiggle {
+      animation: wiggle 0.38s ease;
+      border-color: #ffd166;
+    }
+
+    .option-card.correct-pop {
+      animation: popBounce 0.45s ease;
+      border-color: #6ee7b7;
+      background: #ecfdf5;
+    }
+
+    .option-main {
+      font-size: clamp(28px, 6vw, 38px);
+      font-weight: 800;
+      color: #5c3a58;
+      line-height: 1.1;
+    }
+
+    .option-sub {
+      font-size: 14px;
+      font-weight: 700;
+      color: #8c6586;
+    }
+
+    .color-swatch {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 4px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+    }
+
+    .feedback-text {
+      min-height: 28px;
+      margin-top: 12px;
+      font-size: 17px;
+      font-weight: 800;
+      color: #d64584;
+    }
+
+    /* Certificate Modal */
+    .certificate-card {
+      background: linear-gradient(180deg, #fffdf5 0%, #fff0f7 100%);
+      border: 5px solid #ffd166;
+      box-shadow: 0 20px 50px rgba(255, 209, 102, 0.4);
+    }
+
+    .cert-ribbon {
+      font-size: 56px;
+      line-height: 1;
+      margin-bottom: 6px;
+      animation: gentleFloat 2s ease-in-out infinite;
+    }
+
+    .cert-title {
+      font-size: clamp(26px, 6vw, 34px);
+      font-weight: 800;
+      color: #d64584;
+      margin: 4px 0;
+    }
+
+    .cert-name {
+      font-size: clamp(20px, 4.5vw, 25px);
+      font-weight: 800;
+      color: #7c3f8a;
+      background: #fff;
+      border: 2px dashed #ffb3d1;
+      border-radius: 16px;
+      padding: 8px 16px;
+      display: inline-block;
+      margin: 8px 0;
+    }
+
+    .cert-desc {
+      font-size: 16px;
+      font-weight: 700;
+      color: #6d4c68;
+      margin: 8px 0 18px;
+      line-height: 1.6;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #ff7eb3, #c77dff);
+      color: #ffffff;
+      border: 3px solid #ffffff;
+      border-radius: 999px;
+      padding: 12px 28px;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(199, 125, 255, 0.35);
+    }
+
+    /* Sparkle particles overlay */
+    .ui-sparkle {
+      position: fixed;
+      pointer-events: none;
+      font-size: 22px;
+      z-index: 60;
+      animation: sparkleUp 0.8s ease-out forwards;
+    }
+
+    @keyframes popBounce {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.16); }
+      75% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes sparkleUp {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); }
+      100% { opacity: 0; transform: translate(-50%, -120%) scale(1.3); }
+    }
+
+    /* Landscape adjustments for small phones */
+    @media (max-height: 480px) and (orientation: landscape) {
+      .joystick-zone {
+        width: 96px;
+        height: 96px;
+        left: max(14px, env(safe-area-inset-left));
+        bottom: max(12px, env(safe-area-inset-bottom));
+      }
+      .joystick-knob {
+        width: 42px;
+        height: 42px;
+      }
+      .hint-banner {
+        top: 56px;
+        font-size: 12px;
+        padding: 4px 12px;
+      }
+      .modal-card {
+        padding: 12px 16px;
+      }
+      .option-card {
+        min-height: 70px;
+        padding: 8px;
+      }
+    }
+      .modal-card{max-height:94vh;overflow-y:auto}
+    a.home-btn{pointer-events:auto;text-decoration:none;color:inherit;border-color:#ff9ec4}
+  </style>
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Top HUD -->
+  <div class="hud-top">
+    <div style="display:flex;gap:8px;align-items:center"><a class="sound-btn home-btn" id="back-home" href="index.html#menu" aria-label="رجوع للعبة">🏠</a><div class="title-pill">🌸 عالم غالية</div></div>
+    <div class="hud-right-group">
+      <div class="coin-pill" id="coin-pill">
+        <span>🪙</span>
+        <span id="coin-count">0</span>
+      </div>
+      <button class="sound-btn" id="sound-toggle" aria-label="الصوت">🔊</button>
+    </div>
+  </div>
+
+  <div class="hint-banner" id="hint-banner">✨ امشي بعصا التحكم أو انقري على المقعد المضيء</div>
+
+  <div class="speech-bubble" id="speech-bubble">أهلاً! لنبدأ الدرس الممتع 🌸</div>
+
+  <!-- Bottom-left On-Screen Joystick -->
+  <div class="joystick-zone" id="joystick-zone">
+    <div class="joystick-knob" id="joystick-knob"></div>
+  </div>
+
+  <!-- Quick Action Button -->
+  <button class="desk-action-btn" id="desk-action-btn">
+    <span>📚</span>
+    <span>هيا للدرس!</span>
+  </button>
+
+  <!-- Classroom Mini-Game Modal -->
+  <div class="modal-backdrop" id="minigame-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="progress-pill" id="progress-pill">1 / 5</div>
+        <button class="close-btn" id="close-minigame" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="question-box">
+        <div class="question-title" id="question-title">اختاري اللون الصحيح</div>
+        <div class="question-target" id="question-target"></div>
+      </div>
+      <div class="options-grid" id="options-grid"></div>
+      <div class="feedback-text" id="feedback-text"></div>
+    </div>
+  </div>
+
+  <!-- Star Certificate Modal -->
+  <div class="modal-backdrop" id="certificate-modal">
+    <div class="modal-card certificate-card">
+      <div class="cert-ribbon">🌟👑🌟</div>
+      <h2 class="cert-title">شهادة نجمة الصف</h2>
+      <div class="cert-name">الأميرة الذكية: غالية 🌸</div>
+      <p class="cert-desc">
+        أحسنتِ يا غالية! لقد أنهيتِ درس اليوم بنجاح وتفوق.<br />
+        حصلتِ على <strong>10</strong> عملات إضافية هدية! 🪙✨
+      </p>
+      <button class="primary-btn" id="claim-cert-btn">استلام الجائزة واللعب مجدداً 💕</button>
+    </div>
+  </div>
+
+  <script src="lib/three.min.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // ==========================================
+      // 1. State & LocalStorage (English digits 0-9)
+      // ==========================================
+      const STORAGE_KEY = 'ghalia_coins';
+      let coins = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+      if (isNaN(coins) || coins < 0) coins = 0;
+
+      const coinCountEl = document.getElementById('coin-count');
+      const coinPillEl = document.getElementById('coin-pill');
+
+      function updateCoinsUI(animate = false) {
+        coinCountEl.textContent = String(coins);
+        localStorage.setItem(STORAGE_KEY, String(coins));
+        if (animate) {
+          coinPillEl.classList.remove('pop');
+          void coinPillEl.offsetWidth;
+          coinPillEl.classList.add('pop');
+        }
+      }
+      updateCoinsUI(false);
+
+      function addCoins(amount) {
+        coins += amount;
+        updateCoinsUI(true);
+      }
+
+      // ==========================================
+      // 2. Web Audio API (Gentle SFX, no files)
+      // ==========================================
+      let audioCtx = null;
+      let soundEnabled = true;
+      const soundBtn = document.getElementById('sound-toggle');
+
+      function ensureAudio() {
+        if (!soundEnabled) return null;
+        if (!audioCtx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) audioCtx = new AudioContext();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      function playTone(freq, duration, type = 'sine', volume = 0.12, delay = 0) {
+        const ctx = ensureAudio();
+        if (!ctx) return;
+        const now = ctx.currentTime + delay;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      }
+
+      const SFX = {
+        tap() {
+          playTone(523.25, 0.12, 'sine', 0.1);
+          playTone(659.25, 0.14, 'sine', 0.08, 0.05);
+        },
+        coin() {
+          playTone(783.99, 0.12, 'triangle', 0.13, 0);
+          playTone(1046.5, 0.25, 'triangle', 0.14, 0.08);
+        },
+        gentleTryAgain() {
+          playTone(349.23, 0.14, 'sine', 0.08, 0);
+          playTone(329.63, 0.16, 'sine', 0.07, 0.09);
+        },
+        fanfare() {
+          const notes = [523.25, 659.25, 783.99, 1046.5];
+          notes.forEach((n, i) => playTone(n, 0.28, 'triangle', 0.14, i * 0.11));
+        }
+      };
+
+      soundBtn.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+        if (soundEnabled) SFX.tap();
+      });
+
+      // ==========================================
+      // 3. UI Helpers (Speech Bubble & Sparkles)
+      // ==========================================
+      const speechEl = document.getElementById('speech-bubble');
+      let speechTimer = null;
+
+      function showBubble(text, ms = 2400) {
+        speechEl.textContent = text;
+        speechEl.classList.add('show');
+        clearTimeout(speechTimer);
+        speechTimer = setTimeout(() => {
+          speechEl.classList.remove('show');
+        }, ms);
+      }
+
+      function spawnUISparkles(x, y, count = 4) {
+        const icons = ['✨', '🌸', '⭐', '💖'];
+        for (let i = 0; i < count; i++) {
+          const el = document.createElement('div');
+          el.className = 'ui-sparkle';
+          el.textContent = icons[i % icons.length];
+          el.style.left = (x + (Math.random() - 0.5) * 44) + 'px';
+          el.style.top = (y + (Math.random() - 0.5) * 30) + 'px';
+          document.body.appendChild(el);
+          setTimeout(() => el.remove(), 820);
+        }
+      }
+
+      // ==========================================
+      // 4. Three.js Scene Setup (Barbie Dreamhouse Pastel)
+      // ==========================================
+      const canvas = document.getElementById('game-canvas');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffeef6);
+      scene.fog = new THREE.Fog(0xffeef6, 16, 30);
+
+      const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 60);
+
+      function handleResize() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        // Slightly wider FOV in portrait so the classroom stays cozy and visible
+        camera.fov = w < h ? 58 : 46;
+        camera.updateProjectionMatrix();
+      }
+      window.addEventListener('resize', handleResize);
+      handleResize();
+
+      // Soft Dreamhouse Lighting
+      const hemiLight = new THREE.HemisphereLight(0xfff9ff, 0xffd6e7, 0.92);
+      hemiLight.position.set(0, 12, 0);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0xfff5e8, 0.72);
+      dirLight.position.set(5, 10, 6);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.set(1024, 1024);
+      dirLight.shadow.camera.near = 1;
+      dirLight.shadow.camera.far = 25;
+      const d = 8;
+      dirLight.shadow.camera.left = -d;
+      dirLight.shadow.camera.right = d;
+      dirLight.shadow.camera.top = d;
+      dirLight.shadow.camera.bottom = -d;
+      dirLight.shadow.bias = -0.001;
+      scene.add(dirLight);
+
+      // Materials Helper
+      function pastelMat(hex, roughness = 0.65) {
+        return new THREE.MeshStandardMaterial({ color: hex, roughness, metalness: 0.05 });
+      }
+
+      // ==========================================
+      // 5. Build the Pastel Classroom
+      // ==========================================
+      const interactiveObjects = [];
+      const sparkleParticles3D = [];
+
+      // Floor
+      const floorGeo = new THREE.BoxGeometry(12, 0.2, 11);
+      const floorMesh = new THREE.Mesh(floorGeo, pastelMat(0xfff7ee, 0.8));
+      floorMesh.position.y = -0.1;
+      floorMesh.receiveShadow = true;
+      scene.add(floorMesh);
+
+      // Soft Pastel Rug in Center
+      const rugMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.5, 2.5, 0.03, 36),
+        pastelMat(0xffcde2, 0.9)
+      );
+      rugMesh.position.set(0, 0.015, 0.6);
+      rugMesh.receiveShadow = true;
+      scene.add(rugMesh);
+
+      const innerRug = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.75, 1.75, 0.035, 36),
+        pastelMat(0xead9ff, 0.9)
+      );
+      innerRug.position.set(0, 0.018, 0.6);
+      innerRug.receiveShadow = true;
+      scene.add(innerRug);
+
+      // Walls (Back, Left, Right)
+      const wallMat = pastelMat(0xfff0f6, 0.85);
+      const trimMat = pastelMat(0xffc9df, 0.7);
+
+      const backWall = new THREE.Mesh(new THREE.BoxGeometry(12, 4.6, 0.25), wallMat);
+      backWall.position.set(0, 2.3, -5.4);
+      backWall.receiveShadow = true;
+      scene.add(backWall);
+
+      const backTrim = new THREE.Mesh(new THREE.BoxGeometry(12, 1.0, 0.28), trimMat);
+      backTrim.position.set(0, 0.5, -5.38);
+      scene.add(backTrim);
+
+      const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.25, 4.6, 11), wallMat);
+      leftWall.position.set(-5.9, 2.3, 0);
+      leftWall.receiveShadow = true;
+      scene.add(leftWall);
+
+      const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.25, 4.6, 11), wallMat);
+      rightWall.position.set(5.9, 2.3, 0);
+      rightWall.receiveShadow = true;
+      scene.add(rightWall);
+
+      // Cute Sunny Window on Left Wall
+      const winFrame = new THREE.Mesh(new THREE.BoxGeometry(0.32, 2.0, 2.4), pastelMat(0xffffff));
+      winFrame.position.set(-5.78, 2.5, -1.2);
+      scene.add(winFrame);
+
+      const winGlass = new THREE.Mesh(
+        new THREE.BoxGeometry(0.34, 1.72, 2.1),
+        new THREE.MeshBasicMaterial({ color: 0xc8f4ff })
+      );
+      winGlass.position.set(-5.78, 2.5, -1.2);
+      scene.add(winGlass);
+
+      // Pastel Whiteboard on Back Wall
+      const boardGroup = new THREE.Group();
+      const boardFrame = new THREE.Mesh(new THREE.BoxGeometry(4.6, 2.2, 0.14), pastelMat(0xd4a8ff));
+      boardFrame.castShadow = true;
+      boardGroup.add(boardFrame);
+
+      // Whiteboard Canvas Texture with Cute Arabic Welcome
+      const wbCanvas = document.createElement('canvas');
+      wbCanvas.width = 512;
+      wbCanvas.height = 256;
+      const wbCtx = wbCanvas.getContext('2d');
+      wbCtx.fillStyle = '#ffffff';
+      wbCtx.fillRect(0, 0, 512, 256);
+      wbCtx.strokeStyle = '#ffd1e6';
+      wbCtx.lineWidth = 10;
+      wbCtx.strokeRect(10, 10, 492, 236);
+      wbCtx.fillStyle = '#d64584';
+      wbCtx.font = 'bold 44px Tajawal, sans-serif';
+      wbCtx.textAlign = 'center';
+      wbCtx.fillText('أهلاً بكم في الصف 🌸', 256, 105);
+      wbCtx.fillStyle = '#7c3f8a';
+      wbCtx.font = 'bold 30px Tajawal, sans-serif';
+      wbCtx.fillText('أ  •  ب  •  ت  •  ⭐', 256, 175);
+
+      const wbTex = new THREE.CanvasTexture(wbCanvas);
+      const boardSurface = new THREE.Mesh(
+        new THREE.BoxGeometry(4.25, 1.88, 0.16),
+        new THREE.MeshBasicMaterial({ map: wbTex })
+      );
+      boardGroup.add(boardSurface);
+
+      // Cute Star on Top of Whiteboard
+      const topStar = new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), pastelMat(0xffd166, 0.3));
+      topStar.position.set(0, 1.28, 0.05);
+      boardGroup.add(topStar);
+
+      boardGroup.position.set(0, 2.45, -5.2);
+      boardGroup.userData = { interactType: 'desk' };
+      scene.add(boardGroup);
+      interactiveObjects.push(boardGroup);
+
+      // Helper: Rounded Toy Desk + Chair
+      function createDeskSet(x, z, topColor, legColor, isGhaliaDesk = false) {
+        const group = new THREE.Group();
+
+        // Desk Top
+        const top = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.12, 0.85), pastelMat(0xffffff));
+        top.position.y = 0.78;
+        top.castShadow = true;
+        top.receiveShadow = true;
+        group.add(top);
+
+        // Pastel Rim
+        const rim = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 0.9), pastelMat(topColor));
+        rim.position.y = 0.74;
+        group.add(rim);
+
+        // 4 Rounded Legs
+        const legGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.74, 12);
+        const legMat = pastelMat(legColor);
+        [[-0.55, -0.32], [0.55, -0.32], [-0.55, 0.32], [0.55, 0.32]].forEach(([lx, lz]) => {
+          const leg = new THREE.Mesh(legGeo, legMat);
+          leg.position.set(lx, 0.37, lz);
+          leg.castShadow = true;
+          group.add(leg);
+        });
+
+        // Cute Chair
+        const chairSeat = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 20), pastelMat(topColor));
+        chairSeat.position.set(0, 0.44, 0.72);
+        chairSeat.castShadow = true;
+        group.add(chairSeat);
+
+        const chairBack = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.42, 0.08), pastelMat(topColor));
+        chairBack.position.set(0, 0.7, 0.98);
+        chairBack.castShadow = true;
+        group.add(chairBack);
+
+        [[-0.2, 0.56], [0.2, 0.56], [-0.2, 0.88], [0.2, 0.88]].forEach(([cx, cz]) => {
+          const cLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.44, 10), legMat);
+          cLeg.position.set(cx, 0.22, cz);
+          group.add(cLeg);
+        });
+
+        // Cute Book on Desk
+        const book = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.06, 0.28), pastelMat(isGhaliaDesk ? 0xff85b3 : 0xa0e7e5));
+        book.position.set(-0.18, 0.87, 0);
+        book.rotation.y = 0.15;
+        group.add(book);
+
+        // Pencil Cup
+        const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.16, 12), pastelMat(0xffd166));
+        cup.position.set(0.38, 0.92, -0.15);
+        group.add(cup);
+
+        group.position.set(x, 0, z);
+        scene.add(group);
+        return group;
+      }
+
+      // Create 4 Classroom Desks (Front-Center is Ghalia's Glowing Desk!)
+      const ghaliaDesk = createDeskSet(0, -1.6, 0xff9ec4, 0xb5f2e4, true);
+      createDeskSet(-2.4, -1.6, 0xb5f2e4, 0xd4a8ff, false);
+      createDeskSet(2.4, -1.6, 0xd4a8ff, 0xffc2dd, false);
+      createDeskSet(-2.4, 1.1, 0xffe082, 0xff9ec4, false);
+
+      // Glowing Ring & Floating Star above Ghalia's Desk
+      const glowRingMat = new THREE.MeshBasicMaterial({
+        color: 0xff85b3,
+        transparent: true,
+        opacity: 0.65,
+        side: THREE.DoubleSide
+      });
+      const glowRing = new THREE.Mesh(new THREE.RingGeometry(0.88, 1.08, 32), glowRingMat);
+      glowRing.rotation.x = -Math.PI / 2;
+      glowRing.position.set(0, 0.04, -1.35);
+      scene.add(glowRing);
+
+      const floatingStar = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.24, 0),
+        new THREE.MeshStandardMaterial({
+          color: 0xffd166,
+          emissive: 0xffaa00,
+          emissiveIntensity: 0.45,
+          roughness: 0.25
+        })
+      );
+      floatingStar.position.set(0, 1.45, -1.6);
+      scene.add(floatingStar);
+
+      ghaliaDesk.userData = { interactType: 'desk' };
+      interactiveObjects.push(ghaliaDesk);
+
+      // Shelves along Right Wall
+      function createShelf(x, z) {
+        const shelf = new THREE.Group();
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.3, 2.2), pastelMat(0xfff5e6));
+        frame.position.y = 1.15;
+        frame.castShadow = true;
+        frame.receiveShadow = true;
+        shelf.add(frame);
+
+        const shelfColors = [0xff85b3, 0x8be8d5, 0xc79dff, 0xffd166];
+        for (let row = 0; row < 3; row++) {
+          const y = 0.55 + row * 0.68;
+          for (let b = 0; b < 4; b++) {
+            const book = new THREE.Mesh(
+              new THREE.BoxGeometry(0.35, 0.36, 0.14),
+              pastelMat(shelfColors[(row + b) % shelfColors.length])
+            );
+            book.position.set(-0.2, y, -0.65 + b * 0.22);
+            shelf.add(book);
+          }
+          // Cute toy ball/block
+          const toy = new THREE.Mesh(
+            new THREE.SphereGeometry(0.16, 16, 16),
+            pastelMat(shelfColors[(row + 2) % shelfColors.length])
+          );
+          toy.position.set(-0.18, y - 0.04, 0.55);
+          shelf.add(toy);
+        }
+
+        shelf.position.set(x, 0, z);
+        scene.add(shelf);
+      }
+      createShelf(5.3, -1.8);
+      createShelf(5.3, 1.2);
+
+      // Cute Potted Plant in Corner
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.24, 0.48, 16), pastelMat(0xffb3d1));
+      pot.position.set(-4.9, 0.24, -4.4);
+      pot.castShadow = true;
+      scene.add(pot);
+
+      const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), pastelMat(0x8be8d5));
+      leaves.position.set(-4.9, 0.72, -4.4);
+      leaves.castShadow = true;
+      scene.add(leaves);
+
+      // ==========================================
+      // 6. Ghalia 3D Character (Modest, Cute, Animated)
+      // ==========================================
+      const ghalia = new THREE.Group();
+
+      // Long Modest Pastel Dress (Pink + Lavender sash)
+      const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.42, 0.78, 20), pastelMat(0xff9ec4));
+      skirt.position.y = 0.46;
+      skirt.castShadow = true;
+      ghalia.add(skirt);
+
+      const bodice = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.21, 0.38, 18), pastelMat(0xffb8d6));
+      bodice.position.y = 0.98;
+      bodice.castShadow = true;
+      ghalia.add(bodice);
+
+      const sash = new THREE.Mesh(new THREE.CylinderGeometry(0.215, 0.215, 0.08, 18), pastelMat(0xc79dff));
+      sash.position.y = 0.84;
+      ghalia.add(sash);
+
+      // Shoes peeking under long dress
+      const shoeMat = pastelMat(0xffffff);
+      const leftShoe = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), shoeMat);
+      leftShoe.position.set(-0.12, 0.07, 0.08);
+      ghalia.add(leftShoe);
+      const rightShoe = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), shoeMat);
+      rightShoe.position.set(0.12, 0.07, 0.08);
+      ghalia.add(rightShoe);
+
+      // Long Sleeves & Hands
+      function createArm(side) {
+        const armPivot = new THREE.Group();
+        armPivot.position.set(side * 0.24, 1.1, 0);
+        const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.06, 0.36, 12), pastelMat(0xffb8d6));
+        sleeve.position.y = -0.18;
+        sleeve.castShadow = true;
+        armPivot.add(sleeve);
+
+        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.058, 12, 12), pastelMat(0xfcd5b5));
+        hand.position.y = -0.38;
+        armPivot.add(hand);
+        return armPivot;
+      }
+      const leftArm = createArm(-1);
+      const rightArm = createArm(1);
+      ghalia.add(leftArm);
+      ghalia.add(rightArm);
+
+      // Head
+      const headGroup = new THREE.Group();
+      headGroup.position.y = 1.42;
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 24, 24), pastelMat(0xfcd5b5, 0.7));
+      head.castShadow = true;
+      headGroup.add(head);
+
+      // Eyes & Rosy Cheeks
+      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x3b2338 });
+      const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 12), eyeMat);
+      leftEye.position.set(-0.09, 0.02, 0.24);
+      headGroup.add(leftEye);
+
+      const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 12), eyeMat);
+      rightEye.position.set(0.09, 0.02, 0.24);
+      headGroup.add(rightEye);
+
+      const cheekMat = new THREE.MeshBasicMaterial({ color: 0xff9ebc });
+      const leftCheek = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), cheekMat);
+      leftCheek.position.set(-0.15, -0.05, 0.21);
+      headGroup.add(leftCheek);
+
+      const rightCheek = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), cheekMat);
+      rightCheek.position.set(0.15, -0.05, 0.21);
+      headGroup.add(rightCheek);
+
+      // Hair + Cute Twin Buns + Pastel Bow
+      const hairMat = pastelMat(0x4a2c2a, 0.75);
+      const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.285, 22, 22, 0, Math.PI * 2, 0, Math.PI * 0.62), hairMat);
+      hairCap.rotation.x = -0.22;
+      headGroup.add(hairCap);
+
+      const bunL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 14), hairMat);
+      bunL.position.set(-0.24, 0.16, -0.06);
+      headGroup.add(bunL);
+
+      const bunR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 14), hairMat);
+      bunR.position.set(0.24, 0.16, -0.06);
+      headGroup.add(bunR);
+
+      // Pastel Bow
+      const bowMat = pastelMat(0xff6fa8);
+      const bowL = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.14, 8), bowMat);
+      bowL.rotation.z = -Math.PI / 2;
+      bowL.position.set(-0.07, 0.28, 0.05);
+      headGroup.add(bowL);
+
+      const bowR = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.14, 8), bowMat);
+      bowR.rotation.z = Math.PI / 2;
+      bowR.position.set(0.07, 0.28, 0.05);
+      headGroup.add(bowR);
+
+      ghalia.add(headGroup);
+      ghalia.position.set(0, 0, 2.4);
+      ghalia.rotation.y = Math.PI; // Facing towards the whiteboard/desks
+      scene.add(ghalia);
+
+      // Tap-to-walk target ring
+      const targetRing = new THREE.Mesh(
+        new THREE.RingGeometry(0.24, 0.34, 24),
+        new THREE.MeshBasicMaterial({ color: 0x8be8d5, side: THREE.DoubleSide, transparent: true, opacity: 0 })
+      );
+      targetRing.rotation.x = -Math.PI / 2;
+      targetRing.position.y = 0.03;
+      scene.add(targetRing);
+
+      // ==========================================
+      // 7. Controls: Joystick + Tap-to-Walk + Raycast
+      // ==========================================
+      const joystickZone = document.getElementById('joystick-zone');
+      const joystickKnob = document.getElementById('joystick-knob');
+      let joyTouchId = null;
+      let joyX = 0; // -1 to 1
+      let joyY = 0; // -1 to 1
+      let walkTarget = null;
+      let openDeskAfterWalk = false;
+      let isModalOpen = false;
+
+      function updateJoystick(clientX, clientY) {
+        const rect = joystickZone.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const maxR = rect.width * 0.36;
+        let dx = clientX - cx;
+        let dy = clientY - cy;
+        const dist = Math.hypot(dx, dy);
+        if (dist > maxR) {
+          dx = (dx / dist) * maxR;
+          dy = (dy / dist) * maxR;
+        }
+        joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+        joyX = dx / maxR;
+        joyY = dy / maxR;
+        if (Math.hypot(joyX, joyY) > 0.12) {
+          walkTarget = null;
+          openDeskAfterWalk = false;
+        }
+      }
+
+      function resetJoystick() {
+        joyTouchId = null;
+        joyX = 0;
+        joyY = 0;
+        joystickKnob.style.transform = 'translate(0px, 0px)';
+      }
+
+      joystickZone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        ensureAudio();
+        const t = e.changedTouches[0];
+        joyTouchId = t.identifier;
+        updateJoystick(t.clientX, t.clientY);
+      }, { passive: false });
+
+      window.addEventListener('touchmove', (e) => {
+        if (joyTouchId === null) return;
+        for (const t of e.changedTouches) {
+          if (t.identifier === joyTouchId) {
+            updateJoystick(t.clientX, t.clientY);
+            break;
+          }
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchend', (e) => {
+        for (const t of e.changedTouches) {
+          if (t.identifier === joyTouchId) resetJoystick();
+        }
+      });
+
+      // Mouse support for joystick (desktop testing)
+      let joyMouseDown = false;
+      joystickZone.addEventListener('mousedown', (e) => {
+        ensureAudio();
+        joyMouseDown = true;
+        updateJoystick(e.clientX, e.clientY);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (joyMouseDown) updateJoystick(e.clientX, e.clientY);
+      });
+      window.addEventListener('mouseup', () => {
+        if (joyMouseDown) {
+          joyMouseDown = false;
+          resetJoystick();
+        }
+      });
+
+      // Keyboard WASD / Arrows bonus
+      const keys = {};
+      window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+      window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+      // Raycasting for Tap-to-Walk & Tap Glowing Desk
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+
+      function handleSceneTap(clientX, clientY) {
+        if (isModalOpen) return;
+        ensureAudio();
+
+        pointer.x = (clientX / window.innerWidth) * 2 - 1;
+        pointer.y = -(clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+
+        // 1. Check interactive glowing objects
+        const hitInteractive = raycaster.intersectObjects(interactiveObjects, true);
+        if (hitInteractive.length > 0) {
+          SFX.tap();
+          spawnUISparkles(clientX, clientY, 5);
+          goToDeskAndOpen();
+          return;
+        }
+
+        // 2. Check floor tap-to-walk
+        const hitFloor = raycaster.intersectObject(floorMesh);
+        if (hitFloor.length > 0) {
+          const p = hitFloor[0].point;
+          walkTarget = new THREE.Vector3(
+            THREE.MathUtils.clamp(p.x, -4.8, 4.3),
+            0,
+            THREE.MathUtils.clamp(p.z, -4.2, 4.4)
+          );
+          openDeskAfterWalk = false;
+          targetRing.position.set(walkTarget.x, 0.03, walkTarget.z);
+          targetRing.material.opacity = 0.85;
+          SFX.tap();
+        }
+      }
+
+      canvas.addEventListener('pointerdown', (e) => {
+        handleSceneTap(e.clientX, e.clientY);
+      });
+
+      function goToDeskAndOpen() {
+        const deskSpot = new THREE.Vector3(0, 0, -0.35);
+        const dist = ghalia.position.distanceTo(deskSpot);
+        if (dist < 1.15) {
+          openMiniGame();
+        } else {
+          walkTarget = deskSpot;
+          openDeskAfterWalk = true;
+          showBubble('هيا إلى مقعدي الجميل! ✨', 1600);
+        }
+      }
+
+      document.getElementById('desk-action-btn').addEventListener('click', () => {
+        ensureAudio();
+        SFX.tap();
+        goToDeskAndOpen();
+      });
+
+      // ==========================================
+      // 8. Classroom Mini-Game (5-year-old Arabic Colors & Letters)
+      // ==========================================
+      const minigameModal = document.getElementById('minigame-modal');
+      const certModal = document.getElementById('certificate-modal');
+      const progressPill = document.getElementById('progress-pill');
+      const questionTitle = document.getElementById('question-title');
+      const questionTarget = document.getElementById('question-target');
+      const optionsGrid = document.getElementById('options-grid');
+      const feedbackText = document.getElementById('feedback-text');
+
+      const COLORS_POOL = [
+        { name: 'وردي', hex: '#ff85b3' },
+        { name: 'أزرق', hex: '#7cc6fe' },
+        { name: 'أصفر', hex: '#ffd166' },
+        { name: 'أخضر', hex: '#7ae582' },
+        { name: 'بنفسجي', hex: '#c79dff' },
+        { name: 'برتقالي', hex: '#ff9f68' }
+      ];
+
+      const LETTERS_POOL = [
+        { letter: 'أ', word: 'أرنب', emoji: '🐰' },
+        { letter: 'ب', word: 'بطة', emoji: '🦆' },
+        { letter: 'ت', word: 'تفاحة', emoji: '🍎' },
+        { letter: 'ث', word: 'ثعلب', emoji: '🦊' },
+        { letter: 'ج', word: 'جمل', emoji: '🐪' },
+        { letter: 'س', word: 'سمكة', emoji: '🐟' },
+        { letter: 'ق', word: 'قمر', emoji: '🌙' },
+        { letter: 'ن', word: 'نجمة', emoji: '⭐' }
+      ];
+
+      const TOTAL_QUESTIONS = 5;
+      let currentQuestionIdx = 0;
+      let roundQuestions = [];
+      let happySpinTimer = 0;
+
+      function shuffle(arr) {
+        return [...arr].sort(() => Math.random() - 0.5);
+      }
+
+      function buildRound() {
+        const list = [];
+        for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+          if (i % 2 === 0) {
+            const choices = shuffle(COLORS_POOL).slice(0, 4);
+            list.push({ type: 'color', target: choices[0], choices: shuffle(choices) });
+          } else {
+            const choices = shuffle(LETTERS_POOL).slice(0, 4);
+            list.push({ type: 'letter', target: choices[0], choices: shuffle(choices) });
+          }
+        }
+        return list;
+      }
+
+      function openMiniGame() {
+        isModalOpen = true;
+        roundQuestions = buildRound();
+        currentQuestionIdx = 0;
+        minigameModal.classList.add('open');
+        renderQuestion();
+      }
+
+      function closeMiniGame() {
+        isModalOpen = false;
+        minigameModal.classList.remove('open');
+      }
+
+      document.getElementById('close-minigame').addEventListener('click', () => {
+        SFX.tap();
+        closeMiniGame();
+      });
+
+      function renderQuestion() {
+        const q = roundQuestions[currentQuestionIdx];
+        progressPill.textContent = `${currentQuestionIdx + 1} / ${TOTAL_QUESTIONS}`;
+        feedbackText.textContent = '';
+        optionsGrid.innerHTML = '';
+
+        if (q.type === 'color') {
+          questionTitle.textContent = 'اختاري اللون المطلوب 🎨';
+          questionTarget.innerHTML = `
+            <span class="color-badge" style="background:${q.target.hex}"></span>
+            <span>${q.target.name}</span>
+          `;
+          q.choices.forEach((choice) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-card';
+            btn.innerHTML = `
+              <span class="color-swatch" style="background:${choice.hex}"></span>
+              <span class="option-sub">${choice.name}</span>
+            `;
+            btn.addEventListener('click', (e) => handleAnswer(choice.name === q.target.name, btn, e));
+            optionsGrid.appendChild(btn);
+          });
+        } else {
+          questionTitle.textContent = 'ابحثي عن الحرف الجميل ✨';
+          questionTarget.innerHTML = `
+            <span>${q.target.letter}</span>
+            <span>${q.target.emoji}</span>
+          `;
+          q.choices.forEach((choice) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-card';
+            btn.innerHTML = `
+              <span class="option-main">${choice.letter}</span>
+              <span class="option-sub">${choice.emoji} ${choice.word}</span>
+            `;
+            btn.addEventListener('click', (e) => handleAnswer(choice.letter === q.target.letter, btn, e));
+            optionsGrid.appendChild(btn);
+          });
+        }
+      }
+
+      let answeringLock = false;
+      function handleAnswer(isCorrect, btn, event) {
+        if (answeringLock) return;
+        if (isCorrect) {
+          answeringLock = true;
+          btn.classList.add('correct-pop');
+          SFX.coin();
+          addCoins(5);
+          happySpinTimer = 1.0;
+          const rect = btn.getBoundingClientRect();
+          spawnUISparkles(rect.left + rect.width / 2, rect.top + rect.height / 2, 6);
+          feedbackText.textContent = 'ممتازة يا غالية! +5 عملات 🌟';
+
+          setTimeout(() => {
+            answeringLock = false;
+            currentQuestionIdx++;
+            if (currentQuestionIdx >= TOTAL_QUESTIONS) {
+              closeMiniGame();
+              openCertificate();
+            } else {
+              renderQuestion();
+            }
+          }, 850);
+        } else {
+          // Kid-friendly: No fail state, gentle hint!
+          SFX.gentleTryAgain();
+          btn.classList.remove('wiggle');
+          void btn.offsetWidth;
+          btn.classList.add('wiggle');
+          feedbackText.textContent = 'قريبة جداً! جربي بطاقة أخرى 💕';
+        }
+      }
+
+      function openCertificate() {
+        isModalOpen = true;
+        SFX.fanfare();
+        certModal.classList.add('open');
+        happySpinTimer = 2.0;
+      }
+
+      document.getElementById('claim-cert-btn').addEventListener('click', (e) => {
+        SFX.coin();
+        addCoins(10);
+        spawnUISparkles(e.clientX, e.clientY, 8);
+        certModal.classList.remove('open');
+        isModalOpen = false;
+        showBubble('حصلتِ على نجمة الصف! 🌟', 2800);
+      });
+
+      // ==========================================
+      // 9. Animation & Smooth Third-Person Camera Loop
+      // ==========================================
+      const clock = new THREE.Clock();
+      let walkPhase = 0;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        const t = clock.elapsedTime;
+
+        // Floating Star & Glowing Desk Ring Pulse
+        floatingStar.position.y = 1.45 + Math.sin(t * 2.6) * 0.1;
+        floatingStar.rotation.y += dt * 1.4;
+        glowRingMat.opacity = 0.42 + Math.sin(t * 3.2) * 0.25;
+        topStar.rotation.y -= dt * 1.1;
+
+        // Movement Input (Joystick + Keyboard + Tap-to-walk)
+        let moveX = joyX;
+        let moveZ = joyY;
+        if (keys['ArrowLeft'] || keys['KeyA']) moveX -= 1;
+        if (keys['ArrowRight'] || keys['KeyD']) moveX += 1;
+        if (keys['ArrowUp'] || keys['KeyW']) moveZ -= 1;
+        if (keys['ArrowDown'] || keys['KeyS']) moveZ += 1;
+
+        let isWalking = false;
+        const speed = 3.2;
+
+        if (!isModalOpen) {
+          if (Math.hypot(moveX, moveZ) > 0.12) {
+            const len = Math.hypot(moveX, moveZ);
+            const nx = moveX / Math.max(1, len);
+            const nz = moveZ / Math.max(1, len);
+            ghalia.position.x += nx * speed * dt;
+            ghalia.position.z += nz * speed * dt;
+            const targetAngle = Math.atan2(nx, nz);
+            ghalia.rotation.y = lerpAngle(ghalia.rotation.y, targetAngle, dt * 10);
+            isWalking = true;
+          } else if (walkTarget) {
+            const dx = walkTarget.x - ghalia.position.x;
+            const dz = walkTarget.z - ghalia.position.z;
+            const dist = Math.hypot(dx, dz);
+            if (dist > 0.12) {
+              const nx = dx / dist;
+              const nz = dz / dist;
+              ghalia.position.x += nx * speed * dt;
+              ghalia.position.z += nz * speed * dt;
+              const targetAngle = Math.atan2(nx, nz);
+              ghalia.rotation.y = lerpAngle(ghalia.rotation.y, targetAngle, dt * 10);
+              isWalking = true;
+            } else {
+              walkTarget = null;
+              targetRing.material.opacity = 0;
+              if (openDeskAfterWalk) {
+                openDeskAfterWalk = false;
+                openMiniGame();
+              }
+            }
+          }
+        }
+
+        // Keep Ghalia comfortably inside the classroom walls
+        ghalia.position.x = THREE.MathUtils.clamp(ghalia.position.x, -4.9, 4.3);
+        ghalia.position.z = THREE.MathUtils.clamp(ghalia.position.z, -4.1, 4.4);
+
+        // Fade tap-to-walk ring
+        if (targetRing.material.opacity > 0 && !walkTarget) {
+          targetRing.material.opacity = Math.max(0, targetRing.material.opacity - dt * 2);
+        }
+
+        // Character Animations (Walk / Idle / Happy Jump)
+        if (happySpinTimer > 0) {
+          happySpinTimer -= dt;
+          ghalia.position.y = Math.abs(Math.sin(t * 10)) * 0.25;
+          ghalia.rotation.y += dt * 6;
+        } else if (isWalking) {
+          walkPhase += dt * 11;
+          ghalia.position.y = Math.abs(Math.sin(walkPhase)) * 0.06;
+          leftArm.rotation.x = Math.sin(walkPhase) * 0.45;
+          rightArm.rotation.x = -Math.sin(walkPhase) * 0.45;
+          headGroup.rotation.z = Math.sin(walkPhase * 0.5) * 0.04;
+        } else {
+          // Gentle Idle Breathing
+          ghalia.position.y = Math.sin(t * 2.2) * 0.02;
+          leftArm.rotation.x = THREE.MathUtils.lerp(leftArm.rotation.x, 0, dt * 8);
+          rightArm.rotation.x = THREE.MathUtils.lerp(rightArm.rotation.x, 0, dt * 8);
+          headGroup.rotation.z = Math.sin(t * 1.5) * 0.03;
+        }
+
+        // Smooth Third-Person Follow Camera
+        const isPortrait = window.innerWidth < window.innerHeight;
+        const camOffset = isPortrait
+          ? new THREE.Vector3(0, 4.4, 5.8)
+          : new THREE.Vector3(0, 3.6, 5.0);
+
+        const desiredCamPos = ghalia.position.clone().add(camOffset);
+        desiredCamPos.x = THREE.MathUtils.clamp(desiredCamPos.x, -3.5, 3.5);
+        desiredCamPos.z = THREE.MathUtils.clamp(desiredCamPos.z, -1.5, 7.6);
+        camera.position.lerp(desiredCamPos, dt * 4.5);
+
+        const lookTarget = ghalia.position.clone().add(new THREE.Vector3(0, 1.0, -0.6));
+        camera.lookAt(lookTarget);
+
+        renderer.render(scene, camera);
+      }
+
+      function lerpAngle(a, b, t) {
+        let diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
+        if (diff < -Math.PI) diff += Math.PI * 2;
+        return a + diff * Math.min(1, t);
+      }
+
+      // Initial Welcome Bubble
+      setTimeout(() => showBubble('أهلاً يا غالية! انقري على المقعد المضيء 🌸', 3200), 600);
+      animate();
+    })();
+  </script>
+</body>
+</html>

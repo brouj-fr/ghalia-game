@@ -1,0 +1,108 @@
+/* ===== v2 theme for the 2D game shell: sunset-neon chrome (start, menu, top bar, bubble, buttons, coin counter). Room art stays as-is. ===== */
+html,body{background:radial-gradient(ellipse at 50% 40%,#2f1b4f,#160a28 70%)!important}
+#stage{background:#160a28;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.6),0 0 80px rgba(255,71,126,.18)}
+/* start */
+#start{background:linear-gradient(270deg,rgba(22,10,40,.85) 0%,rgba(22,10,40,.35) 50%,rgba(22,10,40,.05) 75%),url(img/hero-dreamhouse.jpg) center/cover}
+#start::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 80% 75% at 50% 50%,transparent 55%,rgba(14,4,30,.6))}
+.startChars{filter:drop-shadow(0 0 24px rgba(255,71,126,.35)) drop-shadow(0 18px 20px rgba(0,0,0,.45))}
+.startBox{top:110px;text-align:right;z-index:2}
+.startBox h1{font-family:var(--v2-head);font-weight:400;font-size:132px;line-height:.95;margin:0;background:linear-gradient(180deg,#ffd36e 0%,#ff8c42 45%,#ff477e 85%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 0 rgba(22,10,40,.6)) drop-shadow(0 0 30px rgba(255,71,126,.4))}
+.startBox h1 span{display:inline-block;margin-top:8px;font-family:var(--v2-script);font-weight:700;font-size:92px;color:#fff;-webkit-text-fill-color:#fff;transform:rotate(-4deg);text-shadow:0 0 8px #fff,0 0 20px #ff477e,0 0 44px #ff477e,0 0 80px #e12b7a}
+.startBox::before{content:'● هدية خاصة · موسم غالية';display:block;font:700 22px/1 var(--v2-ui);color:var(--v2-cream);margin-bottom:22px;opacity:.9}
+.bigbtn{font-family:var(--v2-ui);font-size:42px;font-weight:900;background:var(--v2-grad)!important;padding:20px 56px;box-shadow:0 12px 34px rgba(255,71,126,.55),inset 0 2px 0 rgba(255,255,255,.45)!important;text-shadow:0 2px 3px rgba(80,0,40,.35)}
+.bigbtn:active{transform:scale(.96)}
+.gift{color:var(--v2-cream);font-family:var(--v2-ui);font-size:24px;opacity:.85}
+.hearts i{color:#ff7eb6;text-shadow:0 0 12px #ff477e;opacity:.55}
+/* menu */
+#menu{background:linear-gradient(180deg,rgba(22,10,40,.92) 0%,rgba(22,10,40,.55) 35%,rgba(22,10,40,.7) 100%),url(img/hero-dreamhouse.jpg) center 60%/cover}
+#menu:before{background:linear-gradient(0deg,rgba(255,71,126,.22),transparent 40%)}
+.mhead{background:linear-gradient(rgba(22,10,40,.75),rgba(22,10,40,0))}
+#menu h2{font-family:var(--v2-head)}
+#tabs{counter-reset:t;gap:6px;top:112px}
+.tab{counter-increment:t;font-family:var(--v2-ui);font-size:22px;font-weight:900;color:rgba(255,244,234,.75);background:transparent;box-shadow:none;padding:10px 16px;border-radius:0}
+.tab::before{content:"٠" counter(t,arabic-indic) " ";color:var(--v2-pink);margin-inline-end:4px}
+.tab:after{left:16px;right:16px;top:auto;bottom:2px;height:3px;border-radius:3px;background:var(--v2-grad);transform:scaleX(0);transition:transform .35s cubic-bezier(.65,0,.35,1)}
+.tab.on{color:#fff;background:transparent;box-shadow:none}
+.tab.on:after{transform:scaleX(1)}
+.card{border-radius:30px;border:2px solid rgba(255,255,255,.22);box-shadow:0 22px 40px rgba(8,0,20,.55),0 0 0 1px rgba(255,71,126,.15);transition:transform .35s cubic-bezier(.3,1.6,.5,1),box-shadow .35s}
+.card:hover{transform:translateY(-8px) scale(1.03);box-shadow:0 30px 50px rgba(8,0,20,.6),0 0 34px rgba(255,71,126,.55)}
+.card::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(22,10,40,.75) 0%,rgba(22,10,40,0) 45%);pointer-events:none}
+.card .ic{box-shadow:0 12px 30px rgba(22,10,40,.35),inset 0 0 0 3px rgba(255,255,255,.6)}
+.card b{z-index:2;font-family:var(--v2-head);font-weight:400;font-size:36px;color:#fff;background:transparent;box-shadow:none;text-shadow:0 2px 12px rgba(22,10,40,.8);letter-spacing:.3px}
+.card .cs{z-index:2;color:#fff;text-shadow:0 0 10px #ff477e,0 0 20px #ff477e}
+.card[data-room=shop]{box-shadow:0 22px 40px rgba(8,0,20,.55),0 0 0 3px #ff477e,0 0 40px rgba(255,71,126,.7)}
+.card[data-room=shop]::before{content:'جديد ✨';position:absolute;top:18px;left:18px;z-index:3;font:900 18px/1 var(--v2-ui);color:#fff;background:var(--v2-grad);padding:8px 14px;border-radius:999px;box-shadow:0 0 18px rgba(255,71,126,.8)}
+.arr{color:#fff;background:rgba(22,10,40,.55);border:2px solid rgba(255,244,234,.55);box-shadow:0 8px 20px rgba(0,0,0,.35)}
+#mchars{background:rgba(22,10,40,.6);border:1.5px solid rgba(255,255,255,.18);box-shadow:0 10px 26px rgba(0,0,0,.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.mc b{color:var(--v2-cream);font-family:var(--v2-ui)}
+.mc img{border-color:var(--v2-pink)}
+/* top bar buttons */
+.rb{background:radial-gradient(circle at 50% 30%,#3a2160 0,#23153c 60%,#160a28 100%);border:3px solid rgba(255,244,234,.55);box-shadow:0 8px 20px rgba(10,0,25,.45),0 0 18px rgba(255,71,126,.35)}
+.rb svg path,.rb svg ellipse,.rb svg rect{filter:drop-shadow(0 0 3px rgba(255,71,126,.8))}
+.rb:active{transform:scale(.92);box-shadow:0 4px 10px rgba(10,0,25,.45)}
+#bHome{background:var(--v2-grad);border-color:#fff}
+#bHome svg path,#bHome svg rect{stroke:#fff}
+/* coin pill → green slot-machine counter */
+#coins{background:rgba(22,10,40,.78);border:2px solid rgba(255,244,234,.4);box-shadow:0 8px 20px rgba(10,0,25,.45);padding:10px 18px;top:24px}
+#coins .v2-counter{font-size:32px}
+#coins .v2-counter .coin{font-size:28px}
+/* speech bubble: cream card like the shop tags */
+#bubble{background:#fff4ea!important;border:0!important;border-radius:22px;box-shadow:0 14px 34px rgba(10,0,25,.35),0 0 0 3px rgba(255,71,126,.35)!important}
+#bubble p{color:#23153c;font-family:var(--v2-ui);font-weight:900}
+#bubble img{border-color:var(--v2-pink)}
+/* big buttons inside games */
+.gbtn{font-family:var(--v2-ui);background:var(--v2-grad);box-shadow:0 10px 26px rgba(255,71,126,.5),inset 0 2px 0 rgba(255,255,255,.4)}
+.gbtn.alt{background:linear-gradient(90deg,#8f5bff,#c77dff);box-shadow:0 10px 26px rgba(143,91,255,.5),inset 0 2px 0 rgba(255,255,255,.4)}
+.gbtn.nx{background:linear-gradient(90deg,#14b86a,#5dffa0);box-shadow:0 10px 26px rgba(20,184,106,.5),inset 0 2px 0 rgba(255,255,255,.4)}
+.gbtn:active{transform:scale(.95)}
+#rotate{background:linear-gradient(180deg,#160a28,#23153c 40%,#e12b7a 80%,#ff8c42);font-family:var(--v2-head);font-weight:400}
+#stage{font-family:'Tajawal',"Segoe UI",Tahoma,"Geeza Pro",Arial,sans-serif}
+#stage button{font-family:inherit}
+.certo .ovbox{background:transparent!important;box-shadow:none!important;border:none!important}.certo .cert p.cd{color:rgba(255,244,234,.6)!important}
+
+/* ===== v2 dressing room ===== */
+.v2room{position:absolute;inset:0;overflow:hidden}
+.v2room .v2bgimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.v2dress .v2beam{position:absolute;left:330px;top:60px;width:520px;height:640px;pointer-events:none;mix-blend-mode:screen;opacity:.55;
+  background:linear-gradient(160deg,rgba(255,206,140,.55),rgba(255,170,110,0) 70%);clip-path:polygon(10% 0,42% 0,100% 100%,40% 100%);animation:v2beam 6s ease-in-out infinite}
+.v2dress.sun .v2beam{animation:v2beamPop 1.4s ease-out}
+.v2dress .v2fl,.v2dress .v2bulb{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle,rgba(255,236,190,.95) 0,rgba(255,200,120,.45) 22%,rgba(255,170,90,0) 62%);animation:v2tw 2.2s ease-in-out infinite}
+.v2dress .v2bulb{width:60px;height:60px;margin:-30px 0 0 -30px;animation-duration:3s}
+.v2dress.mir .v2bulb{animation:v2chase .5s ease-in-out 4}
+.v2dress .v2heart{position:absolute;left:990px;top:128px;width:92px;height:84px;border-radius:50%;cursor:pointer;mix-blend-mode:screen;
+  background:radial-gradient(circle,rgba(255,90,170,.55),rgba(255,60,150,0) 65%);animation:v2neon 4s steps(1) infinite}
+.v2dress .v2heart.pulse{animation:v2heartPop .9s cubic-bezier(.2,1.6,.4,1)}
+.v2dress .v2hit{position:absolute;cursor:pointer;border-radius:20px}
+.v2dress.sway .v2hit[data-hit=wardrobe]{animation:v2glow 1s ease-out}
+.v2dress .v2flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.v2dress .v2flash.go{animation:v2flash .55s ease-out}
+@keyframes v2tw{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.12)}}
+@keyframes v2chase{0%,100%{opacity:.4}50%{opacity:1;transform:scale(1.5)}}
+@keyframes v2neon{0%,100%{opacity:1}43%{opacity:.35}45%{opacity:1}47%{opacity:.5}49%{opacity:1}}
+@keyframes v2heartPop{0%{transform:scale(1)}40%{transform:scale(1.8);opacity:1}100%{transform:scale(1)}}
+@keyframes v2glow{0%{box-shadow:inset 0 0 0 0 rgba(255,200,240,0)}30%{box-shadow:inset 0 0 120px 20px rgba(255,200,240,.55)}100%{box-shadow:inset 0 0 0 0 rgba(255,200,240,0)}}
+@keyframes v2flash{0%{opacity:.75}100%{opacity:0}}
+@keyframes v2beam{0%,100%{opacity:.45}50%{opacity:.65}}
+@keyframes v2beamPop{0%{opacity:.5}30%{opacity:1;filter:brightness(1.6)}100%{opacity:.5}}
+/* dark-glass toolbar & carousel everywhere (v2 chrome) */
+#toolbar{background:linear-gradient(180deg,rgba(35,21,60,.82),rgba(22,10,40,.88))!important;border:1.5px solid rgba(255,255,255,.18)!important;box-shadow:0 18px 40px rgba(10,0,30,.45),0 0 0 1px rgba(255,71,126,.25) inset!important;backdrop-filter:blur(10px)}
+#toolbar .tool{background:linear-gradient(180deg,#fff9f3,#ffe6f0)!important;box-shadow:0 4px 0 #b0105c,0 8px 18px rgba(0,0,0,.25)!important;transition:transform .2s cubic-bezier(.2,1.6,.4,1)}
+#toolbar .tool:hover{transform:translateY(-3px) scale(1.04)}
+#toolbar .tool span{font-family:"Lalezar","Cairo",sans-serif!important;font-weight:400!important;color:#c2185b}
+#carousel{background:linear-gradient(180deg,rgba(35,21,60,.82),rgba(22,10,40,.88))!important;border:1.5px solid rgba(255,255,255,.18)!important;box-shadow:0 18px 40px rgba(10,0,30,.45)!important;backdrop-filter:blur(10px)}
+#carousel .cc b{font-family:"Lalezar","Cairo",sans-serif!important;font-weight:400!important}
+/* v2 hero parallax */
+#start.v2hero{background:#2a1430!important;overflow:hidden}
+#start.v2hero .v2hero-bg{position:absolute;inset:-4%;background:linear-gradient(270deg,rgba(22,10,40,.72) 0%,rgba(22,10,40,.28) 42%,rgba(22,10,40,0) 70%),url(img/hero-dreamhouse.jpg) center/cover;will-change:transform;animation:v2heroIn 1.6s cubic-bezier(.2,.8,.2,1) both}
+#start.v2hero .v2hero-sun{position:absolute;left:4%;top:44%;width:300px;height:300px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,236,170,.9) 0,rgba(255,190,110,.45) 25%,rgba(255,140,90,0) 65%);animation:v2sun 5s ease-in-out infinite}
+#start.v2hero .v2hero-sparks{position:absolute;inset:0;pointer-events:none;z-index:1}
+#start.v2hero .v2hero-sparks i{position:absolute;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#fff6d0 0,rgba(255,210,140,.6) 40%,transparent 70%);opacity:0;animation:v2float 7s ease-in-out infinite}
+#start.v2hero .startChars,#start.v2hero .startBox{will-change:transform}
+@keyframes v2heroIn{0%{opacity:0;filter:blur(8px)}100%{opacity:1;filter:none}}
+@keyframes v2sun{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes v2float{0%{opacity:0;translate:0 20px}20%{opacity:.9}100%{opacity:0;translate:14px -120px}}
+#menu{background:linear-gradient(180deg,rgba(22,10,40,.88) 0%,rgba(22,10,40,.45) 35%,rgba(22,10,40,.62) 100%),url(img/hero-dreamhouse.jpg) center 60%/cover!important}
+.startBox h1{background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:#fff!important}
+.startBox h1 .t1{background:linear-gradient(180deg,#ffd36e 0%,#ff8c42 45%,#ff477e 85%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.startBox h1 span.t1{display:inline;margin:0;font-family:var(--v2-head);font-weight:400;font-size:132px;transform:none;text-shadow:none;animation:none;filter:drop-shadow(0 4px 0 rgba(120,20,60,.55)) drop-shadow(0 0 24px rgba(255,120,80,.35))}

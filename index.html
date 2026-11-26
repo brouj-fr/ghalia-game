@@ -6,7 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>مغامرات غالية مع خالتها</title>
+<link rel="stylesheet" href="fonts/tajawal.css">
+<link rel="stylesheet" href="fonts/v2.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="chrome.css">
+<link rel="stylesheet" href="theme-v2.css">
+<meta name="theme-color" content="#160a28">
 </head>
 <body>
 <div id="stage" data-screen="start">
@@ -18,7 +23,7 @@
       <img src="img/ghalia.png" class="sg" alt="" draggable="false">
     </div>
     <div class="startBox">
-      <h1>مغامرات غالية<br><span>مع خالتها</span></h1>
+      <h1><span class="t1">مغامرات غالية</span><br><span class="t2">مع خالتها</span></h1>
       <button id="play" class="bigbtn">يلا نلعب <b>&#9654;</b></button>
       <p class="gift">هدية من خالتج لغالية 💗</p>
     </div>
@@ -46,13 +51,16 @@
   <div id="fx"></div>
   <div id="rotate">لفّي الجهاز بالعرض عشان تلعبين 🔄<small>(اضغطي للإكمال)</small></div>
 </div>
+<script src="chrome.js"></script>
+<script src="voice-en.js"></script>
 <script src="game.js"></script>
 <script src="rooms.js"></script>
 <script src="rooms2.js"></script>
 <script src="life.js"></script>
 <script src="games.js"></script>
 <script src="school.js"></script><script src="shop.js"></script>
+<script src="v2-rooms.js"></script>
 <script src="menu.js"></script>
-<script>GAME.api.buildMenu();</script>
+<script>GAME.api.buildMenu();V2.grain(document.body,{opacity:.06,vignette:false});</script>
 </body>
 </html>

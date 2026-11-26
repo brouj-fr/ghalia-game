@@ -10,7 +10,7 @@ function loop(fn){var r=R(),last=performance.now();function f(t){if(r.dead||r.pa
 function best(key,val,lower){var k='ghalia_best_'+key,b=null;try{b=localStorage.getItem(k);}catch(e){}b=b==null?null:+b;
   if(val!=null&&(b==null||(lower?val<b:val>b))){try{localStorage.setItem(k,String(val));}catch(e){}return {best:val,isNew:true};}return {best:b,isNew:false};}
 var COINS=0;try{COINS=+(localStorage.getItem('ghalia_coins')||0);}catch(e){}
-function addCoins(n,x,y){COINS+=n;try{localStorage.setItem('ghalia_coins',String(COINS));}catch(e){}var c=document.getElementById('coins');if(c){c.querySelector('b').textContent=COINS;c.animate([{transform:'scale(1)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:400});}
+function addCoins(n,x,y){COINS+=n;try{localStorage.setItem('ghalia_coins',String(COINS));}catch(e){}var c=document.getElementById('coins');if(c){c.querySelector('b').textContent=COINS;if(c._roll)c._roll.set(COINS);c.animate([{transform:'scale(1)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:400});}
   if(x!=null&&window.LIFE)LIFE.floatText(x,y,'+'+n+' 🪙');sfx.star();}
 function starsHTML(n){var s='';for(var i=0;i<3;i++)s+='<i class="'+(i<n?'on':'')+'">★</i>';return s;}
 function hud(){var h=div('hud','<span class="hs">⭐ <b>0</b></span><span class="ht">⏱ <b>30</b></span><span class="hb">🏆 <b>-</b></span>');return {el:h,set:function(s,t,b){if(s!=null)h.querySelector('.hs b').textContent=s;if(t!=null)h.querySelector('.ht b').textContent=t;if(b!=null)h.querySelector('.hb b').textContent=b;},hideTime:function(){h.querySelector('.ht').style.display='none';}};}
@@ -27,7 +27,8 @@ function startScreen(title,desc,fn,extra){overlay('<h3>'+title+'</h3><p>'+desc+'
 A.ui={div:div,onTap:onTap,loop:loop,best:best,hud:hud,overlay:overlay,countdown:countdown,endScreen:endScreen,startScreen:startScreen,starsHTML:starsHTML,addCoins:addCoins,coins:function(){return COINS;}};
 
 /* coins pill (global) */
-(function(){var c=document.createElement('div');c.id='coins';c.innerHTML='🪙 <b>'+COINS+'</b>';document.getElementById('topbar').appendChild(c);})();
+(function(){var c=document.createElement('div');c.id='coins';c.innerHTML='<b hidden>'+COINS+'</b><span class="roll"></span>';document.getElementById('topbar').appendChild(c);
+  if(window.V2&&V2.RollCounter){c._roll=new V2.RollCounter(c.querySelector('.roll'),COINS,3);}else{c.innerHTML='🪙 <b>'+COINS+'</b>';}})();
 
 var GBG=function(c1,c2){return '<svg class="bg" viewBox="0 0 1280 720"><defs><radialGradient id="gg'+c1.slice(1)+'" cx=".5" cy=".3" r=".9"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></radialGradient></defs><rect width="1280" height="720" fill="url(#gg'+c1.slice(1)+')"/>'+
   (function(){var s='';for(var i=0;i<26;i++){s+='<circle cx="'+((i*197)%1280)+'" cy="'+((i*131)%720)+'" r="'+(3+i%4)+'" fill="#fff" opacity=".35"/>';}return s;})()+'</svg>';};

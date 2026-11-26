@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#160a28">
+<title>متجر غالية</title>
+<link rel="stylesheet" href="fonts/tajawal.css">
+<link rel="stylesheet" href="fonts/v2.css">
+<link rel="stylesheet" href="chrome.css">
+<link rel="stylesheet" href="shop3d.css">
+</head>
+<body data-sec="hero">
+<canvas id="gl"></canvas>
+<div id="loader"><b class="v2-neon">متجر غالية</b><i><s></s></i></div>
+
+<header id="nav">
+  <a class="brand" href="#hero" data-go="hero" aria-label="متجر غالية"><span class="s">غالية</span><span class="b">ستايل</span></a>
+  <nav id="tabs">
+    <button data-go="rack"><i>٠١</i> الرف</button>
+    <button data-go="look"><i>٠٢</i> جربي اللوك</button>
+    <button data-go="coins"><i>٠٣</i> العملات</button>
+  </nav>
+  <div class="tools">
+    <div id="stars" title="أغراضج"></div>
+    <div id="coins" title="عملاتج"></div>
+    <button id="stash" class="stash" data-go="look">أغراضي <b>0</b></button>
+    <button id="snd" class="ico" aria-label="الصوت">🔊</button>
+    <a id="home" class="ico home" href="index.html#menu" aria-label="رجوع للعبة">↩ 🏠</a>
+  </div>
+</header>
+
+<section id="hero" class="sec">
+  <div class="heroTxt">
+    <p class="kick"><span>●</span> المجموعة الوردية · موسم الصيف</p>
+    <h1><span class="v2-neon">متجر</span> <b>غالية</b></h1>
+    <p class="sub">ثمان قطع حلوة تنتظرج على الرف. اجمعي عملات من الألعاب والمدرسة، واختاري اللي يعجبج!</p>
+    <div class="ctas"><button class="v2-pill" id="enter">ادخلي المتجر ✨</button><button class="v2-ghost" data-go="coins">كيف أجمع عملات؟</button></div>
+  </div>
+  <div class="heroCard"><i>✦</i><div><small>جاهزة للصيف؟</small><b>لوك غالية الجديد</b></div></div>
+  <div class="scrollHint">اضغطي <b>ادخلي المتجر</b></div>
+</section>
+
+<section id="rack" class="sec">
+  <div class="head"><h2><i>٠١</i> الرف</h2><p>ثمان قطع على رف واحد. <span class="dsk">مرّري عشان تطلع القطعة، اضغطي عشان تجربينها، واسحبي عشان تلفينها.</span><span class="mob">اضغطي مرة تطلع القطعة، ومرة ثانية تجربينها.</span></p></div>
+  <div id="tag"><i></i><span class="n"></span><span class="p"></span></div>
+  <div class="hint v2-hint" id="hint">
+    <span class="dsk"><kbd>مرّري</kbd>تطلع القطعة</span><span class="dsk dot">·</span><span class="dsk"><kbd>اضغطي</kbd>تجربينها</span><span class="dsk dot">·</span><span class="dsk"><kbd>اسحبي</kbd>الرف</span>
+    <span class="mob"><kbd>اضغطي</kbd>تطلع</span><span class="mob dot">·</span><span class="mob"><kbd>مرتين</kbd>تجربينها</span><span class="mob dot">·</span><span class="mob"><kbd>اسحبي</kbd>الرف</span>
+  </div>
+  <button class="v2-ghost cta" id="first">جربي أول قطعة</button>
+  <div id="focus">
+    <button class="close v2-ghost" id="close">✕ رجوع للرف</button>
+    <button class="rot rl" id="rotL" aria-label="لفي">‹</button><button class="rot rr" id="rotR" aria-label="لفي">›</button>
+    <div class="card">
+      <div class="t"><span class="num" id="fnum"></span><h3 id="fname"></h3><span class="pr" id="fprice"></span></div>
+      <p class="d" id="fdesc"></p>
+      <div class="swl"><small>اختاري اللون</small><div class="sw" id="fsw"></div></div>
+      <div class="act"><button class="v2-pill" id="buy"></button><button class="v2-ghost" id="wear">جربيها على غالية 👗</button></div>
+      <small class="drag">↔ اسحبي القطعة عشان تشوفين ظهرها</small>
+    </div>
+  </div>
+</section>
+
+<section id="look" class="sec">
+  <div class="head"><h2><i>٠٢</i> جربي اللوك</h2><p>لبسي غالية من أغراضج، وبعدين احفظي اللوك.</p></div>
+  <aside id="panel">
+    <div class="ph"><small>غالية</small><h4>لوكج اليوم</h4></div>
+    <ul id="plist"></ul>
+    <div class="foot"><div class="cnt"><small>لابسة</small><b id="wearN">0</b></div><button class="v2-pill" id="save">احفظي اللوك 👗</button></div>
+  </aside>
+  <div id="hots"></div>
+</section>
+
+<section id="coinsSec" class="sec">
+  <div class="cwrap">
+    <p class="kick"><i>٠٣</i> كيف أجمع عملات؟</p>
+    <h2 class="big">العبي. اجمعي.<br><span class="v2-neon">وتدلّعي!</span></h2>
+    <div class="have">عندج الحين <span id="coins2"></span></div>
+    <div class="cards">
+      <a class="ccard" href="index.html#room=memory"><i>🃏</i><b>لعبة الذاكرة</b><small>كل لعبة تخلصينها = عملات</small><em>روحي ←</em></a>
+      <a class="ccard" href="index.html#room=balloons"><i>🎈</i><b>فقع البالونات</b><small>فقعي وجمّعي</small><em>روحي ←</em></a>
+      <a class="ccard" href="index.html#room=sch1"><i>🎒</i><b>المدرسة</b><small>الألوان والحروف ونجمة الصف</small><em>روحي ←</em></a>
+      <a class="ccard" href="world3d.html"><i>🏠</i><b>عالم غالية 3D</b><small>بيت الأحلام والمهام</small><em>روحي ←</em></a>
+    </div>
+    <button class="v2-pill" data-go="rack">رجعي للرف 🛍️</button>
+  </div>
+</section>
+
+<div id="burst"><b class="v2-neon">صار عندج!</b><span class="amt"></span><small></small></div>
+<div id="toast"></div>
+<noscript>اللعبة تحتاج JavaScript</noscript>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/fx/CopyShader.js"></script>
+<script src="lib/fx/LuminosityHighPassShader.js"></script>
+<script src="lib/fx/BokehShader.js"></script>
+<script src="lib/fx/EffectComposer.js"></script>
+<script src="lib/fx/RenderPass.js"></script>
+<script src="lib/fx/ShaderPass.js"></script>
+<script src="lib/fx/MaskPass.js"></script>
+<script src="lib/fx/UnrealBloomPass.js"></script>
+<script src="lib/fx/BokehPass.js"></script>
+<script src="chrome.js"></script>
+<script src="shop-models.js"></script>
+<script src="shop3d.js"></script>
+</body>
+</html>

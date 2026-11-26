@@ -205,7 +205,7 @@ ROOMS.sch4=def({name:'الصف',color:'linear-gradient(135deg,#d8f5c8,#7ec8ff)',
         end:function(c,p){var tg=slots[k];var tx=parseFloat(tg.style.left),ty=parseFloat(tg.style.top);if(Math.hypot(p.x-(tx+35),p.y-(ty+35))<70){s._done=true;s.style.left=tx+'px';s.style.top=ty+'px';matched++;star();
           if(matched===3){teacherSay('ممتاز! خلصتي كل الأسئلة 🌟');later(cert,1500);}}else{sfx.oops();s.style.left=home.x+'px';s.style.top=home.y+'px';teacherSay('هذا مو مكانه، جربي ثاني 🙂');}}});});}
   function cert(){document.querySelectorAll('.sshape,.sslot').forEach(function(e){e.remove();});A.confetti();sfx.win();var d=new Date();var ds=d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();A.ui.addCoins(15,640,300);
-    var o=A.ui.overlay('<div class="cert"><div class="ctitle">⭐ نجمة الصف ⭐</div><img src="img/ghalia.png" alt=""><p>شهادة تقدير للبطلة <b>غالية</b></p><p>جمعتي <b>'+r.starsGot+'</b> نجمة اليوم!</p><p class="cd">'+ds+'</p></div>',[{t:'القائمة 🏠',cls:'alt',fn:function(){A.goMenu();}},{t:'من البداية 🔁',fn:function(){A.openRoom('sch1');}},{t:'الصف 3D 🏫',fn:function(){location.href='class3d.html';}}]);o.classList.add('certo');}
+    var o=A.ui.overlay('<div class="cert"><div class="ctitle">⭐ نجمة الصف ⭐</div><img src="img/ghalia.png" alt=""><p>شهادة تقدير للبطلة <b>غالية</b></p><p>جمعتي <b>'+r.starsGot+'</b> نجمة اليوم!</p><p class="cd">'+ds+'</p></div>',[{t:'القائمة 🏠',cls:'alt',fn:function(){A.goMenu();}},{t:'من البداية 🔁',fn:function(){A.openRoom('sch1');}},{t:'الصف 3D 🏫',fn:function(){location.href='class3d.html';}}]);o.classList.add('certo');if(window.V2&&V2.certify)V2.certify(o.querySelector('.cert'),{date:false});}
   teacherSay('صباح الخير يا شطار! 🌞');later(function(){raise(letters,'منو يعرف الحروف؟');},1500);
  }});
 })();

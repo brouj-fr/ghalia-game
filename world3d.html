@@ -172,6 +172,17 @@
       .joystick-knob { width: 36px; height: 36px; }
     }
   </style>
+<link rel="stylesheet" href="fonts/v2.css">
+<link rel="stylesheet" href="chrome.css">
+<style>#ghalia-face-badge{position:absolute;top:-46px;left:50%;transform:translateX(-50%);width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#fff6fb,#ffd3e6);box-shadow:0 8px 24px rgba(120,30,80,.35),0 0 0 4px #fff;z-index:3;pointer-events:none}#minigame-modal .modal-card{position:relative;overflow:visible;margin-top:46px}</style>
+<style id="v2-start">
+#start-overlay{background:radial-gradient(120% 80% at 50% 110%,rgba(255,140,90,.28),rgba(22,10,40,.0) 60%),linear-gradient(180deg,rgba(22,10,40,.15),rgba(22,10,40,.55))!important;backdrop-filter:blur(2px)!important;-webkit-backdrop-filter:blur(2px)!important}
+#start-overlay .start-card{background:linear-gradient(180deg,rgba(45,22,70,.78),rgba(22,10,40,.86))!important;border:1.5px solid rgba(255,214,150,.45)!important;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(255,120,180,.25)!important;border-radius:28px!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:v2cardIn .9s cubic-bezier(.2,.9,.25,1.2) both}
+#start-overlay h1{font-family:"Lalezar","Cairo",sans-serif!important;font-weight:400!important;font-size:clamp(30px,7vw,42px)!important;background:linear-gradient(180deg,#fff1c4,#ffb36b 55%,#ff6fa8);-webkit-background-clip:text;background-clip:text;color:transparent!important;filter:drop-shadow(0 3px 10px rgba(255,120,80,.35))}
+#start-overlay p{color:#ffd9ec!important}
+#start-overlay .primary-btn{background:linear-gradient(90deg,#ff5fa2,#ffb36b)!important;color:#2a1240!important;font-family:"Lalezar","Cairo",sans-serif!important;font-weight:400!important;font-size:22px!important;box-shadow:0 10px 30px rgba(255,95,162,.45)!important}
+@keyframes v2cardIn{0%{opacity:0;transform:translateY(24px) scale(.92)}100%{opacity:1;transform:none}}
+</style>
 </head>
 <body>
   <canvas id="game-canvas"></canvas>
@@ -270,7 +281,7 @@
   <!-- Star Certificate Modal -->
   <div class="modal-backdrop" id="certificate-modal">
     <div class="modal-card" style="border-color:#ffd166;background:linear-gradient(180deg,#fffdf5,#fff0f7);">
-      <div style="font-size:52px;">🌟👑🌟</div>
+      <div data-v2-ribbon style="font-size:52px;">🌟👑🌟</div>
       <h2 class="modal-title" style="font-size:28px;">شهادة نجمة الصف</h2>
       <div style="font-size:20px;font-weight:800;color:#7c3f8a;margin:8px 0;">الأميرة الذكية: غالية 🌸</div>
       <p style="font-weight:700;">أحسنتِ يا غالية! حصلتِ على <strong>10</strong> عملات هدية 🪙✨</p>
@@ -290,6 +301,22 @@
   </div>
 
   <script src="lib/three.min.js"></script>
+  <script src="lib/fx/CopyShader.js"></script>
+  <script src="lib/fx/LuminosityHighPassShader.js"></script>
+  <script src="lib/fx/EffectComposer.js"></script>
+  <script src="lib/fx/RenderPass.js"></script>
+  <script src="lib/fx/ShaderPass.js"></script>
+  <script src="lib/fx/MaskPass.js"></script>
+  <script src="lib/fx/UnrealBloomPass.js"></script>
+  <script src="chrome.js"></script>
+  <script src="look3d.js"></script>
+  <script src="ghalia-sprite-atlas.js"></script>
+  <script src="ghalia-sprite.js"></script>
+  <script src="ghalia-rig.js"></script>
+  <script src="scene-kit.js"></script>
+  <script src="house-art.js"></script>
+  <script src="house-scene.js"></script>
+  <script src="illustrated-world.js"></script>
   <script>
     (function () {
       'use strict';
@@ -314,7 +341,7 @@
         if (pop) { coinPillEl.classList.remove('pop'); void coinPillEl.offsetWidth; coinPillEl.classList.add('pop'); }
       }
       updateCoinsUI(false);
-      const addCoins = (n) => { state.coins += n; updateCoinsUI(true); };
+      const addCoins = (n) => { state.coins += n; updateCoinsUI(true); if (window.__ghaliaRig && n >= 10) window.__ghaliaRig.expr('surprised', 1.6); };
 
       // ==========================================
       // 2. Web Audio SFX
@@ -448,11 +475,27 @@
       }
       window.addEventListener('resize', onResize); onResize();
 
-      scene.add(new THREE.HemisphereLight(0xfff9ff, 0xffcbe2, 0.95));
+      const hemiLight = new THREE.HemisphereLight(0xfff9ff, 0xffcbe2, 0.95);
+      scene.add(hemiLight);
       const dirLight = new THREE.DirectionalLight(0xfff6eb, 0.72);
       dirLight.position.set(5, 11, 8); dirLight.castShadow = true;
-      dirLight.shadow.mapSize.set(1024, 1024);
-      scene.add(dirLight);
+      dirLight.shadow.mapSize.set(V2.tier() === 'low' ? 1024 : 2048, V2.tier() === 'low' ? 1024 : 2048);
+      Object.assign(dirLight.shadow.camera, { left: -9, right: 9, top: 7, bottom: -7, near: 1, far: 40 });
+      dirLight.shadow.bias = -0.0006; dirLight.shadow.radius = 4;
+      scene.add(dirLight); scene.add(dirLight.target);
+      const FX = V2LOOK.setup(renderer, scene, camera, { exposure: 1.0 });
+      let sunPulse = 0;
+      function setWorldLight(mode) {
+        if (mode === 'sunset') {
+          hemiLight.color.set(0xffd6c4); hemiLight.groundColor.set(0x6a3550); hemiLight.intensity = 0.5;
+          dirLight.color.set(0xffa868); dirLight.intensity = 1.7; dirLight.position.set(2.6, 6.5, -11); dirLight.target.position.set(-0.5, 0, 0.5);
+          renderer.toneMappingExposure = 0.9;
+        } else {
+          hemiLight.color.set(0xfff9ff); hemiLight.groundColor.set(0xffcbe2); hemiLight.intensity = 0.95;
+          dirLight.color.set(0xfff6eb); dirLight.intensity = 0.95; dirLight.position.set(5, 11, 8); dirLight.target.position.set(0, 0, 0);
+          renderer.toneMappingExposure = 1.15;
+        }
+      }
 
       const mat = (hex, rough = 0.6) => new THREE.MeshStandardMaterial({ color: hex, roughness: rough, metalness: 0.05 });
 
@@ -522,7 +565,10 @@
         return grp;
       }
 
-      const ghalia = buildCharacter(state.dressColor, false);
+      const ghaliaRig = GhaliaRig.create({ dress: state.dressColor, backpack: state.owned.includes('backpack'), crown: state.owned.includes('crown'), camera });
+      const ghalia = ghaliaRig.root; window.__ghaliaRig = ghaliaRig;
+      (function () { const card = document.querySelector('#minigame-modal .modal-card'); if (!card) return; const c = document.createElement('canvas'); c.id = 'ghalia-face-badge'; c.width = c.height = 168; card.appendChild(c); ghaliaRig.portrait(c); })();
+
       scene.add(ghalia);
 
       function refreshGhalia() {
@@ -549,162 +595,316 @@
         animatedProps.push({ type: 'float', mesh: sp, baseY: y });
       }
 
-      function buildDreamhouseBedroom() {
-        scene.background = new THREE.Color(0xff5da2);
-        worldBounds = { minX: -12.5, maxX: 12.5, minZ: -2.6, maxZ: 3.2 };
-
-        // Warm Oak Wood Plank Floor
-        floorMesh = new THREE.Mesh(
-          new THREE.BoxGeometry(28, 0.2, 9),
-          new THREE.MeshStandardMaterial({ map: makeWoodFloorTexture(), roughness: 0.7 })
-        );
-        floorMesh.position.y = -0.1; floorMesh.receiveShadow = true; worldGroup.add(floorMesh);
-
-        // Hot-Pink Back Wall
-        const pinkWall = new THREE.Mesh(new THREE.BoxGeometry(28, 5.2, 0.25), mat(0xff4f9a, 0.8));
-        pinkWall.position.set(0, 2.6, -4.4); pinkWall.receiveShadow = true; worldGroup.add(pinkWall);
-
-        // Left Geometric Teal/Purple Accent Wall (Screenshot 1)
-        const geoWall = new THREE.Mesh(
-          new THREE.BoxGeometry(5.6, 5.2, 0.28),
-          new THREE.MeshStandardMaterial({ map: makeGeoWallTexture(), roughness: 0.75 })
-        );
-        geoWall.position.set(-9.5, 2.6, -4.38); worldGroup.add(geoWall);
-
-        // Far-Left Purple Hallway + Staircase Rail (Screenshot 1)
-        const hallWall = new THREE.Mesh(new THREE.BoxGeometry(3.2, 5.2, 0.3), mat(0x7c2ae8));
-        hallWall.position.set(-13.2, 2.6, -4.35); worldGroup.add(hallWall);
-
-        // 1. Computer Desk + 3 Monitors + Orange Chair + ? Marker (Screenshot 1)
-        const deskG = new THREE.Group();
-        const dTop = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.14, 1.1), mat(0xffffff));
-        dTop.position.y = 0.85; dTop.castShadow = true; deskG.add(dTop);
-        const dDrawers = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.75, 0.95), mat(0xeae6f3));
-        dDrawers.position.set(-0.85, 0.4, 0); deskG.add(dDrawers);
-        // Triple Monitors
-        [[-0.78, 1.35, 0.22], [0, 1.35, 0], [0.78, 1.35, -0.22], [0, 1.9, 0]].forEach(([mx, my, ry]) => {
-          const mon = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.48, 0.06), mat(0x1f1f29, 0.3));
-          mon.position.set(mx, my, -0.35); mon.rotation.y = ry; deskG.add(mon);
+      // ===== v2 "Sunset Dream Bedroom" (art direction: concept-house.jpg) =====
+      const HOUSE = {};
+      const em = (hex, k = 1.6) => new THREE.MeshBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), toneMapped: false });
+      const gloss = (hex, rough = 0.3, metal = 0) => new THREE.MeshStandardMaterial({ color: hex, roughness: rough, metalness: metal, envMapIntensity: 0.9 });
+      function canvasTex(w, h, draw, rep) {
+        const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+        const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4;
+        if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); }
+        return t;
+      }
+      function sunsetWoodTex() {
+        return canvasTex(1024, 1024, (x, w, h) => {
+          const rows = 8, ph = h / rows;
+          for (let r = 0; r < rows; r++) {
+            let xx = -(r % 2) * 180;
+            while (xx < w) {
+              const len = 260 + Math.random() * 220, l = 38 + Math.random() * 10;
+              x.fillStyle = `hsl(${24 + Math.random() * 8},${52 + Math.random() * 10}%,${l}%)`; x.fillRect(xx, r * ph, len, ph);
+              for (let k = 0; k < 14; k++) { x.strokeStyle = `rgba(70,30,10,${0.05 + Math.random() * 0.07})`; x.lineWidth = 1 + Math.random() * 2; x.beginPath(); const yy = r * ph + Math.random() * ph; x.moveTo(xx, yy); x.bezierCurveTo(xx + len * .3, yy + 6, xx + len * .6, yy - 6, xx + len, yy + 2); x.stroke(); }
+              x.fillStyle = 'rgba(40,15,5,.55)'; x.fillRect(xx, r * ph, 3, ph); xx += len;
+            }
+            x.fillStyle = 'rgba(40,15,5,.6)'; x.fillRect(0, r * ph, w, 3);
+          }
+        }, [3, 1.4]);
+      }
+      function rugTex() {
+        return canvasTex(512, 512, (x, w) => {
+          const g = x.createRadialGradient(256, 256, 20, 256, 256, 256); g.addColorStop(0, '#ffc4d8'); g.addColorStop(.85, '#ff9cbf'); g.addColorStop(1, 'rgba(255,150,190,0)');
+          x.fillStyle = g; x.fillRect(0, 0, w, w);
+          for (let i = 0; i < 9000; i++) { const a = Math.random() * 6.283, r = Math.sqrt(Math.random()) * 236; x.fillStyle = `rgba(255,${200 + Math.random() * 55},${225 + Math.random() * 30},${Math.random() * .35})`; x.fillRect(256 + Math.cos(a) * r, 256 + Math.sin(a) * r, 2, 4); }
         });
-        const chair = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.5), mat(0xff6b2b));
-        chair.position.set(0.1, 0.55, 0.65); deskG.add(chair);
-        deskG.position.set(-9.2, 0, -3.5);
-        deskG.userData = { interactType: 'classroom', spot: new THREE.Vector3(-9.2, 0, -1.8) };
-        worldGroup.add(deskG); interactiveObjects.push(deskG);
-        addMarker(-9.2, 2.55, -3.2, 'classroom', new THREE.Vector3(-9.2, 0, -1.8));
-
-        // 2. Dresser + Pink Trash Bin + Floating Book Shelves (Screenshot 1 & 4)
-        const bin = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.18, 0.58, 14), mat(0xff85b3));
-        bin.position.set(-6.8, 0.29, -3.8); worldGroup.add(bin);
-
-        const dresser = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.95, 0.85), mat(0xe6c39c));
-        dresser.position.set(-4.6, 0.48, -3.8); dresser.castShadow = true; worldGroup.add(dresser);
-
-        // White Floating Shelves + Colorful Books
-        const shelf1 = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.08, 0.42), mat(0xffffff));
-        shelf1.position.set(-4.8, 2.15, -4.1); worldGroup.add(shelf1);
-        const bookCols = [0xec1c79, 0x1ec8f3, 0x22c55e, 0xff9f1c, 0x7c2ae8];
-        for (let i = 0; i < 8; i++) {
-          const bk = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.42, 0.28), mat(bookCols[i % bookCols.length]));
-          bk.position.set(-5.6 + i * 0.2, 2.4, -4.1); worldGroup.add(bk);
+      }
+      function wallTex() {
+        return canvasTex(512, 512, (x, w, h) => {
+          x.fillStyle = '#f3b5b8'; x.fillRect(0, 0, w, h);
+          for (let i = 0; i < 7; i++) { x.fillStyle = 'rgba(255,255,255,.06)'; x.fillRect(i * 74, 0, 37, h); }
+          for (let i = 0; i < 4000; i++) { x.fillStyle = `rgba(120,40,60,${Math.random() * .04})`; x.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+        }, [6, 1]);
+      }
+      function archShape(w, h) {
+        const s = new THREE.Shape(), r = w / 2;
+        s.moveTo(-r, 0); s.lineTo(r, 0); s.lineTo(r, h - r); s.absarc(0, h - r, r, 0, Math.PI, false); s.lineTo(-r, 0); return s;
+      }
+      function uvFit(geo, w, h) {
+        const p = geo.attributes.position, uv = geo.attributes.uv;
+        for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / w + 0.5, p.getY(i) / h);
+        uv.needsUpdate = true; return geo;
+      }
+      function makeDress(color) {
+        const g = new THREE.Group(), m = gloss(color, 0.55);
+        const pts = [[0, 0.0], [0.33, 0.0], [0.27, 0.25], [0.17, 0.62], [0.11, 0.72], [0.13, 0.95], [0.06, 1.02], [0, 1.02]].map(([a, b]) => new THREE.Vector2(a, b));
+        const d = new THREE.Mesh(new THREE.LatheGeometry(pts, 20), m); d.scale.z = 0.55; d.castShadow = true; g.add(d);
+        const hook = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.012, 6, 12, Math.PI), gloss(0xd9b26a, 0.3, 1)); hook.position.y = 1.1; g.add(hook);
+        return g;
+      }
+      function makePlant(scale = 1, potCol = 0xf7efe6) {
+        const g = new THREE.Group();
+        const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.2, 0.5, 18), gloss(potCol, 0.35)); pot.position.y = 0.25; pot.castShadow = true; g.add(pot);
+        const leafM = gloss(0x3f9a5a, 0.5), leafM2 = gloss(0x5cbf6e, 0.5);
+        for (let i = 0; i < 11; i++) {
+          const lf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), i % 2 ? leafM : leafM2); lf.scale.set(0.55, 1.9, 0.18);
+          const a = i / 11 * Math.PI * 2; lf.position.set(Math.cos(a) * 0.16, 0.78 + (i % 3) * 0.12, Math.sin(a) * 0.16);
+          lf.rotation.set(Math.sin(a) * 0.5, -a, Math.cos(a) * 0.5); lf.castShadow = true; g.add(lf);
         }
+        g.scale.setScalar(scale); return g;
+      }
+      function makeTeddy() {
+        const g = new THREE.Group(), fur = gloss(0xc98d5a, 0.9), lt = gloss(0xf1cfa5, 0.9);
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 14), fur); body.scale.y = 1.1; body.position.y = 0.2; g.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 14), fur); head.position.y = 0.48; g.add(head);
+        [-0.1, 0.1].forEach((x) => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), fur); e.position.set(x, 0.6, 0); g.add(e); });
+        const snout = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), lt); snout.position.set(0, 0.45, 0.13); g.add(snout);
+        [-0.05, 0.05].forEach((x) => { const e = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), new THREE.MeshBasicMaterial({ color: 0x2a1a14 })); e.position.set(x, 0.51, 0.135); g.add(e); });
+        const bow = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.022, 6, 12), gloss(0xff5f9e, 0.4)); bow.position.set(0, 0.34, 0.15); g.add(bow);
+        g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+        return g;
+      }
 
-        // 3. Polka-Dot Bed + Purple Sticker Trunk + Basketball (Screenshot 4)
-        const bed = new THREE.Group();
-        const hb = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.3, 0.18), mat(0x7d1852));
-        hb.position.set(0, 0.65, -1.25); bed.add(hb);
-        const mattress = new THREE.Mesh(
-          new THREE.BoxGeometry(2.0, 0.58, 2.4),
-          new THREE.MeshStandardMaterial({ map: makePolkaDotTexture(), roughness: 0.7 })
-        );
-        mattress.position.set(0, 0.35, 0); mattress.castShadow = true; bed.add(mattress);
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.18, 0.45), mat(0xff85b3));
-        pillow.position.set(0, 0.72, -0.9); bed.add(pillow);
-        bed.position.set(-1.6, 0, -2.7); worldGroup.add(bed);
+      function buildDreamhouseBedroom() {
+        scene.background = new THREE.Color(0x2b1430);
+        worldBounds = { minX: -6.3, maxX: 6.3, minZ: -2.0, maxZ: 3.0 };
+        setWorldLight('sunset');
+        const upd = (fn) => animatedProps.push({ type: 'fn', fn });
+        const hit = (obj, type, spot) => { obj.userData.interactType = type; obj.userData.spot = spot || null; interactiveObjects.push(obj); };
 
-        // Purple Trunk + Basketball
-        const trunk = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.62, 0.75), mat(0x6c2bd9));
-        trunk.position.set(-1.6, 0.31, -0.75); trunk.castShadow = true; worldGroup.add(trunk);
-        const bball = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), mat(0xff6b2b));
-        bball.position.set(-0.3, 0.24, -0.75); bball.castShadow = true; worldGroup.add(bball);
+        // glossy warm wood floor
+        floorMesh = new THREE.Mesh(new THREE.BoxGeometry(15.2, 0.2, 16), new THREE.MeshStandardMaterial({ map: sunsetWoodTex(), roughness: 0.48, metalness: 0.0, envMapIntensity: 1.0 }));
+        floorMesh.position.set(0, -0.1, 2.5); floorMesh.material.map.repeat.set(3, 2.2); floorMesh.receiveShadow = true; worldGroup.add(floorMesh);
+        // walls: blush plaster + cream wainscot + crown moulding
+        const wallM = new THREE.MeshStandardMaterial({ map: wallTex(), roughness: 0.85 });
+        const back = new THREE.Mesh(new THREE.BoxGeometry(15.2, 5.4, 0.25), wallM); back.position.set(0, 2.7, -4.5); back.receiveShadow = true; worldGroup.add(back);
+        [-7.6, 7.6].forEach((x) => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.25, 5.4, 14), wallM); s.position.set(x, 2.7, 2.4); s.receiveShadow = true; worldGroup.add(s); });
+        const wains = gloss(0xfff1e6, 0.5);
+        const wb = new THREE.Mesh(new THREE.BoxGeometry(15.2, 1.15, 0.08), wains); wb.position.set(0, 0.58, -4.34); wb.receiveShadow = true; worldGroup.add(wb);
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(15.2, 0.08, 0.14), wains); rail.position.set(0, 1.17, -4.32); worldGroup.add(rail);
+        for (let x = -7; x <= 7; x += 1.4) { const p = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.75, 0.03), gloss(0xffe8da, 0.5)); p.position.set(x, 0.6, -4.29); worldGroup.add(p); }
+        const crown = new THREE.Mesh(new THREE.BoxGeometry(15.2, 0.22, 0.25), wains); crown.position.set(0, 5.3, -4.3); worldGroup.add(crown);
+        const ceil = new THREE.Mesh(new THREE.BoxGeometry(15.4, 0.2, 16), new THREE.MeshStandardMaterial({ color: 0xffe6dc, roughness: 0.9 })); ceil.position.set(0, 6.5, 2.5); worldGroup.add(ceil);
+        const upper = new THREE.Mesh(new THREE.BoxGeometry(15.2, 1.2, 0.25), wallM); upper.position.set(0, 6.0, -4.5); worldGroup.add(upper);
+        const skirt = new THREE.Mesh(new THREE.BoxGeometry(15.2, 0.14, 0.12), gloss(0xffffff, 0.4)); skirt.position.set(0, 0.07, -4.28); worldGroup.add(skirt);
 
-        // Nightstand
-        const ns = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.78, 0.8), mat(0xe6c39c));
-        ns.position.set(0.2, 0.39, -3.8); worldGroup.add(ns);
-
-        // 4. Glowing Holographic Closet Door + Pink Barbie Mat (Screenshot 3 & 4)
-        const closetG = new THREE.Group();
-        const cFrame = new THREE.Mesh(new THREE.BoxGeometry(1.9, 3.0, 0.18), mat(0xffffff));
-        cFrame.position.y = 1.5; closetG.add(cFrame);
-        const cHolo = new THREE.Mesh(
-          new THREE.BoxGeometry(1.65, 2.75, 0.2),
-          new THREE.MeshBasicMaterial({ color: 0x1ec8f3 })
-        );
-        cHolo.position.y = 1.5; closetG.add(cHolo);
-        const cMat = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.03, 0.9), mat(0xec1c79));
-        cMat.position.set(0, 0.02, 0.75); closetG.add(cMat);
-        closetG.position.set(2.2, 0, -4.2);
-        closetG.userData = { interactType: 'closet', spot: new THREE.Vector3(2.2, 0, -2.4) };
-        worldGroup.add(closetG); interactiveObjects.push(closetG);
-
-        // 5. Glam Photo Stage + Magenta Curtains + Spotlights + Pink Camera (Screenshot 3)
-        const stageG = new THREE.Group();
-        const podBase = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.7, 0.14, 28), mat(0x1f2247));
-        podBase.position.y = 0.07; stageG.add(podBase);
-        [[-0.5, 0.22, -0.2], [0.5, 0.28, -0.2], [0, 0.18, 0.55]].forEach(([px, py, pz]) => {
-          const p = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.68, 0.12, 24), mat(0xff85b3));
-          p.position.set(px, py, pz); stageG.add(p);
+        // ---- arched sunset window with palms (centre-right) ----
+        const WX = 1.5, WW = 2.5, WH = 3.4, WY = 1.25;
+        const win = new THREE.Group(); win.position.set(WX, WY, -4.36);
+        const sunTex = new THREE.TextureLoader().load('img/sunset-window.jpg'); sunTex.encoding = THREE.sRGBEncoding;
+        const glass = new THREE.Mesh(uvFit(new THREE.ShapeGeometry(archShape(WW, WH), 24), WW, WH), new THREE.MeshBasicMaterial({ map: sunTex, color: new THREE.Color(1.35, 1.2, 1.1), toneMapped: false }));
+        win.add(glass);
+        const archPts = []; for (let i = 0; i <= 32; i++) { const a = i / 32 * Math.PI; archPts.push(new THREE.Vector3(Math.cos(a) * WW / 2, WH - WW / 2 + Math.sin(a) * WW / 2, 0.05)); }
+        const frameM = gloss(0xfff6ee, 0.35);
+        const archFrame = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(WW / 2, 0, .05), ...archPts, new THREE.Vector3(-WW / 2, 0, .05)]), 80, 0.07, 8, false), frameM); win.add(archFrame);
+        const mv = new THREE.Mesh(new THREE.BoxGeometry(0.06, WH - 0.1, 0.06), frameM); mv.position.set(0, (WH - 0.1) / 2, 0.06); win.add(mv);
+        [0.9, 1.9].forEach((y) => { const mh = new THREE.Mesh(new THREE.BoxGeometry(WW, 0.05, 0.06), frameM); mh.position.set(0, y, 0.06); win.add(mh); });
+        const sill = new THREE.Mesh(new THREE.BoxGeometry(WW + 0.5, 0.1, 0.42), frameM); sill.position.set(0, -0.02, 0.18); win.add(sill);
+        worldGroup.add(win); hit(win, 'window');
+        const shafts = V2LOOK.sunShafts(WW, 3.2); shafts.position.set(WX + 0.25, 2.75, -3.3); shafts.rotation.set(-0.62, 0.12, 0.1); worldGroup.add(shafts); upd(shafts.userData.update);
+        // sheer curtains (vertex-waved)
+        const curtains = [];
+        [-1, 1].forEach((s) => {
+          const geo = new THREE.PlaneGeometry(0.9, 4.2, 8, 16);
+          const m = new THREE.MeshStandardMaterial({ color: 0xffd6e2, transparent: true, opacity: 0.62, side: THREE.DoubleSide, roughness: 0.9, emissive: 0xff9a7a, emissiveIntensity: 0.18 });
+          const c = new THREE.Mesh(geo, m); c.position.set(WX + s * (WW / 2 + 0.35), 2.6, -4.18); c.userData.base = geo.attributes.position.array.slice(); c.userData.s = s;
+          worldGroup.add(c); curtains.push(c); hit(c, 'window');
         });
-        // Magenta Curtain Pillars & Top Arch
-        [-1.65, 1.65].forEach((cx) => {
-          const curt = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 3.8, 14), mat(0x9e0b52));
-          curt.position.set(cx, 1.9, -0.4); stageG.add(curt);
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, WW + 2.2, 8), gloss(0xd9b26a, 0.25, 1)); rod.rotation.z = Math.PI / 2; rod.position.set(WX, 4.72, -4.2); worldGroup.add(rod);
+        let curtainGust = 0;
+        upd((t, dt) => {
+          curtainGust = Math.max(0, curtainGust - dt * 0.6);
+          curtains.forEach((c) => {
+            const p = c.geometry.attributes.position, b = c.userData.base;
+            for (let i = 0; i < p.count; i++) { const x = b[i * 3], y = b[i * 3 + 1], fall = (2.1 - y) / 4.2; p.setZ(i, Math.sin(x * 9 + t * 1.4 + c.userData.s) * 0.05 + fall * (0.04 + curtainGust * 0.5) * Math.sin(t * 3 + y * 2)); }
+            p.needsUpdate = true;
+          });
         });
-        const topCurt = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.75, 0.5), mat(0x9e0b52));
-        topCurt.position.set(0, 3.65, -0.35); stageG.add(topCurt);
-        // Pink Tripod Camera in Front
-        const camTripod = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 8), mat(0x3a3a4a));
-        camTripod.position.set(0, 0.45, 2.2); stageG.add(camTripod);
-        const pinkCam = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.36, 0.28), mat(0xff4f9a));
-        pinkCam.position.set(0, 0.95, 2.2); stageG.add(pinkCam);
+        HOUSE.window = () => { curtainGust = 1; sunPulse = 1; SFX.soft && SFX.soft(); showBubble('شوفي الغروب! 🌅', 1800); };
 
-        stageG.position.set(5.4, 0, -3.2);
-        stageG.userData = { interactType: 'stage', spot: new THREE.Vector3(5.4, 0, -1.2) };
-        worldGroup.add(stageG); interactiveObjects.push(stageG);
-        addMarker(5.4, 2.2, -3.0, 'stage', new THREE.Vector3(5.4, 0, -1.2));
-
-        // 6. Craft / Bag Table + Window with Golden Curtains + Play Mats (Screenshot 2)
-        const winGlass = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.5, 0.18), new THREE.MeshBasicMaterial({ color: 0x62b6cb }));
-        winGlass.position.set(10.2, 2.3, -4.32); worldGroup.add(winGlass);
-        [-1.6, 1.6].forEach((cx) => {
-          const gc = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 2.8, 12), mat(0xd99b26));
-          gc.position.set(10.2 + cx, 2.2, -4.18); worldGroup.add(gc);
+        // ---- canopy bed (left of window) ----
+        const BX = -1.7, bed = new THREE.Group(); bed.position.set(BX, 0, -3.05);
+        const white = gloss(0xfffaf5, 0.45), pink = gloss(0xff9ec0, 0.6), hot = gloss(0xff6fa6, 0.55);
+        const base = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.4, 2.7), white); base.position.y = 0.25; base.castShadow = true; bed.add(base);
+        const matt = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.28, 2.55), gloss(0xfff4f8, 0.8)); matt.position.y = 0.58; matt.castShadow = true; bed.add(matt);
+        const duvet = new THREE.Mesh(new THREE.BoxGeometry(2.25, 0.16, 1.85), pink); duvet.position.set(0, 0.74, 0.4); duvet.castShadow = true; bed.add(duvet);
+        const fold = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2.25, 12), hot); fold.rotation.z = Math.PI / 2; fold.position.set(0, 0.82, -0.5); bed.add(fold);
+        const hbS = new THREE.Shape(); hbS.moveTo(-1.2, 0); hbS.lineTo(1.2, 0); hbS.lineTo(1.2, 1.1); hbS.bezierCurveTo(1.2, 1.9, -1.2, 1.9, -1.2, 1.1); hbS.lineTo(-1.2, 0);
+        const hb = new THREE.Mesh(new THREE.ExtrudeGeometry(hbS, { depth: 0.18, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 3 }), gloss(0xffc3d6, 0.7)); hb.position.set(0, 0.2, -1.42); hb.castShadow = true; bed.add(hb);
+        for (let r = 0; r < 3; r++) for (let c = 0; c < 6 - (r === 2 ? 2 : 0); c++) { const bt = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), white); bt.position.set(-0.85 + c * 0.34 + (r === 2 ? 0.34 : 0) + (r % 2) * 0.17, 0.75 + r * 0.32, -1.18); bed.add(bt); }
+        [[-0.55, 0xffffff], [0.55, 0xffffff], [-0.2, 0xff8fb8], [0.3, 0xffd166]].forEach(([px, col], i) => {
+          const p = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 12), gloss(col, 0.8)); p.scale.set(1, 0.55, 0.42); p.position.set(px, 0.95 + (i > 1 ? 0.02 : 0.08), -0.95 + (i > 1 ? 0.22 : 0)); p.castShadow = true; bed.add(p);
         });
-        const topGc = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.45, 0.25), mat(0xd99b26));
-        topGc.position.set(10.2, 3.6, -4.15); worldGroup.add(topGc);
-
-        // Craft / School Bag Table
-        const craftTable = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.14, 1.15), mat(0xffffff));
-        craftTable.position.set(9.4, 0.85, -1.1); craftTable.castShadow = true; worldGroup.add(craftTable);
-        [[-1.1, -0.45], [1.1, -0.45], [-1.1, 0.45], [1.1, 0.45]].forEach(([lx, lz]) => {
-          const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.85, 8), mat(0xffffff));
-          leg.position.set(9.4 + lx, 0.42, -1.1 + lz); worldGroup.add(leg);
+        // canopy: gold crown ring + sheer drapes
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.04, 8, 32), gloss(0xe8c070, 0.25, 1)); ring.rotation.x = Math.PI / 2; ring.position.set(0, 4.5, -1.1); bed.add(ring);
+        const drapeM = new THREE.MeshStandardMaterial({ color: 0xffb6cf, transparent: true, opacity: 0.55, side: THREE.DoubleSide, roughness: 0.9, emissive: 0xff7aa8, emissiveIntensity: 0.12 });
+        const drapes = [];
+        [-1, 1].forEach((s) => {
+          const d = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 1.25, 4.1, 24, 6, true, s > 0 ? -0.2 : Math.PI - 1.35, 1.55), drapeM); d.position.set(0, 2.45, -1.0); bed.add(d); drapes.push(d);
         });
-        // Floor Cushions
-        const cush1 = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.12, 18), mat(0x9ef01a));
-        cush1.position.set(11.2, 0.06, -2.8); worldGroup.add(cush1);
-        const cush2 = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.12, 18), mat(0x9e0b52));
-        cush2.position.set(12.3, 0.06, -3.1); worldGroup.add(cush2);
+        const teddy = makeTeddy(); teddy.position.set(0.55, 0.82, 0.15); teddy.rotation.y = -0.4; bed.add(teddy); hit(teddy, 'teddy');
+        worldGroup.add(bed); hit(base, 'bed'); hit(duvet, 'bed');
+        let teddyHop = 0, bedBounce = 0;
+        upd((t, dt) => {
+          if (teddyHop > 0) { teddyHop = Math.max(0, teddyHop - dt); teddy.position.y = 0.82 + Math.abs(Math.sin(teddyHop * 9)) * 0.35 * teddyHop; teddy.rotation.y = -0.4 + (1 - teddyHop) * Math.PI * 2; }
+          if (bedBounce > 0) { bedBounce = Math.max(0, bedBounce - dt); const k = Math.sin(bedBounce * 18) * bedBounce * 0.08; duvet.scale.y = 1 + k * 3; matt.position.y = 0.58 + k; }
+          drapes.forEach((d, i) => { d.rotation.y = Math.sin(t * 0.8 + i) * 0.03 + (bedBounce * Math.sin(t * 12)) * 0.05; });
+        });
+        HOUSE.teddy = () => { teddyHop = 1; SFX.coin && SFX.coin(); showBubble('دبدوب يقول: أحبج! 🧸💗', 1800); };
+        HOUSE.bed = () => { bedBounce = 1; SFX.tap(); showBubble('سرير الأميرة! نوم هني 💤', 1800); };
 
-        // Khala (Aunt) in the Dreamhouse Bedroom!
+        // neon heart above the bed
+        const heart = V2LOOK.neon(V2LOOK.heartPath(0.62), 0xff4f9a, 0.035, true); heart.position.set(BX, 3.55, -4.3); worldGroup.add(heart);
+        const heartHit = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.3), new THREE.MeshBasicMaterial({ visible: false })); heartHit.position.set(BX, 3.55, -4.25); worldGroup.add(heartHit); hit(heartHit, 'heart');
+        const heartLight = new THREE.PointLight(0xff4f9a, 1.4, 5, 2); heartLight.position.set(BX, 3.4, -3.7); worldGroup.add(heartLight);
+        let heartFx = 0; const heartCols = [0xff4f9a, 0xb36bff, 0x3fd6ff, 0xffd166];
+        upd((t, dt) => {
+          heartFx = Math.max(0, heartFx - dt);
+          const f = heartFx > 0 ? (Math.sin(t * 40) > 0 ? 1 : 0.25) : 0.92 + 0.08 * Math.sin(t * 3);
+          const hc = new THREE.Color(heartCols[Math.floor(t * 2) % 4]);
+          const base = heartFx > 0 ? hc : heart.userData.base;
+          heart.userData.mat.color.copy(base).multiplyScalar(2.6 * f); heart.scale.setScalar(1 + Math.sin(t * 2.4) * 0.025 + heartFx * 0.15); heartLight.color.copy(base); heartLight.intensity = 1.4 * f;
+        });
+        HOUSE.heart = () => { heartFx = 1.6; SFX.fanfare && SFX.fanfare(); };
+
+        // fairy lights along the top of the wall & across the bed
+        const fl1 = V2LOOK.fairyLights([new THREE.Vector3(-7.2, 4.95, -4.25), new THREE.Vector3(-3.6, 4.95, -4.25), new THREE.Vector3(0, 4.95, -4.25), new THREE.Vector3(3.6, 4.95, -4.25), new THREE.Vector3(7.2, 4.95, -4.25)], 46);
+        worldGroup.add(fl1);
+        const fl2 = V2LOOK.fairyLights([new THREE.Vector3(BX - 1.3, 4.3, -4.0), new THREE.Vector3(BX, 4.3, -4.0), new THREE.Vector3(BX + 1.3, 4.3, -4.0)], 18, 0xffb8d0); fl2.position.y = -0.3; worldGroup.add(fl2);
+        let chase = 0; upd((t, dt) => { chase = Math.max(0, chase - dt); fl1.userData.update(t, chase > 0); fl2.userData.update(t + 1, chase > 0); });
+        const flHit = new THREE.Mesh(new THREE.BoxGeometry(14.5, 0.7, 0.3), new THREE.MeshBasicMaterial({ visible: false })); flHit.position.set(0, 4.8, -4.1); worldGroup.add(flHit); hit(flHit, 'lights');
+        HOUSE.lights = () => { chase = 2.5; SFX.coin && SFX.coin(); showBubble('أضواء الحفلة! ✨', 1600); };
+
+        // ---- wardrobe with dresses (left) → dressing room ----
+        const ward = new THREE.Group(); ward.position.set(-4.7, 0, -3.65);
+        const carcM = gloss(0xfff6f0, 0.4);
+        const back2 = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.5, 0.06), gloss(0xffc9da, 0.7)); back2.position.set(0, 1.85, -0.5); ward.add(back2);
+        [[-1.1, 0], [1.1, 0]].forEach(([x]) => { const sd = new THREE.Mesh(new THREE.BoxGeometry(0.08, 3.6, 1.05), carcM); sd.position.set(x, 1.85, 0); sd.castShadow = true; ward.add(sd); });
+        const top = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.14, 1.1), carcM); top.position.set(0, 3.7, 0); top.castShadow = true; ward.add(top);
+        const bot = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.5, 1.0), carcM); bot.position.set(0, 0.25, 0); ward.add(bot);
+        [[-0.55], [0.55]].forEach(([x]) => { const k = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), gloss(0xd9b26a, 0.25, 1)); k.position.set(x, 0.3, 0.52); ward.add(k); });
+        const wrail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 2.1, 8), gloss(0xd9b26a, 0.25, 1)); wrail.rotation.z = Math.PI / 2; wrail.position.set(0, 3.25, 0); ward.add(wrail);
+        const dresses = [0xff6fa6, 0xb98cff, 0x7fd8ff, 0xffd166, 0xffffff].map((c, i) => { const d = makeDress(c); d.position.set(-0.8 + i * 0.4, 2.12, 0); d.scale.setScalar(1.0); ward.add(d); return d; });
+        const wLight = new THREE.PointLight(0xffe0c0, 0.6, 3, 2); wLight.position.set(0, 3.2, 0.4); ward.add(wLight);
+        const doors = [];
+        [-1, 1].forEach((s) => {
+          const pivot = new THREE.Group(); pivot.position.set(s * 1.12, 1.85, 0.53);
+          const dr = new THREE.Mesh(new THREE.BoxGeometry(1.1, 3.4, 0.06), carcM); dr.position.x = -s * 0.55; dr.castShadow = true; pivot.add(dr);
+          const panel = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.02), gloss(0xffe3ec, 0.5)); panel.position.set(-s * 0.55, 0.7, 0.035); pivot.add(panel);
+          const panel2 = panel.clone(); panel2.position.y = -0.8; pivot.add(panel2);
+          const hd = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4, 8), gloss(0xd9b26a, 0.25, 1)); hd.position.set(-s * 1.0, 0, 0.07); pivot.add(hd);
+          pivot.rotation.y = s * 1.15; ward.add(pivot); doors.push(pivot);
+        });
+        worldGroup.add(ward); hit(ward, 'wardrobe', new THREE.Vector3(-4.7, 0, -1.6));
+        addMarker(-4.7, 4.3, -3.3, 'wardrobe', new THREE.Vector3(-4.7, 0, -1.6));
+        let wardOpen = 0;
+        upd((t, dt) => {
+          const target = wardOpen > 0 ? 1.95 : 1.15; if (wardOpen > 0) wardOpen -= dt;
+          doors.forEach((p, i) => { const s = i ? 1 : -1; p.rotation.y += (s * target - p.rotation.y) * Math.min(1, dt * 6); });
+          dresses.forEach((d, i) => { d.rotation.z = Math.sin(t * 1.3 + i) * 0.03 + (wardOpen > 0 ? Math.sin(t * 9 + i) * 0.08 : 0); });
+          wLight.intensity = 0.6 + (wardOpen > 0 ? 0.9 : 0);
+        });
+        HOUSE.wardrobe = () => {
+          wardOpen = 3; SFX.fanfare && SFX.fanfare(); showBubble('نختار فستان؟ يلا غرفة الملابس! 👗', 1800);
+          setTimeout(() => { const go = () => { location.href = 'index.html#room=dress'; }; (window.V2 && V2.wipe) ? V2.wipe(go, 'غرفة الملابس') : go(); }, 1100);
+        };
+
+        // ---- vanity with bulb mirror (right) → look ----
+        const van = new THREE.Group(); van.position.set(4.35, 0, -3.85);
+        const vt = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.12, 0.7), white); vt.position.y = 0.95; vt.castShadow = true; van.add(vt);
+        const vd = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.32, 0.62), gloss(0xffd3e2, 0.5)); vd.position.y = 0.74; van.add(vd);
+        [[-0.85, -0.28], [0.85, -0.28], [-0.85, 0.28], [0.85, 0.28]].forEach(([x, z]) => { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.02, 0.9, 8), gloss(0xd9b26a, 0.25, 1)); l.position.set(x, 0.45, z); van.add(l); });
+        const mFrame = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.7, 0.08), white); mFrame.position.set(0, 1.95, -0.3); van.add(mFrame);
+        const mirror = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.45), new THREE.MeshStandardMaterial({ color: 0xffeef2, metalness: 1, roughness: 0.04, envMapIntensity: 1.3 })); mirror.position.set(0, 1.95, -0.25); van.add(mirror);
+        const bulbs = []; const bulbGeo = new THREE.SphereGeometry(0.055, 12, 10);
+        for (let i = 0; i < 6; i++) [-0.7, 0.7].forEach((x) => { const b = new THREE.Mesh(bulbGeo, em(0xfff0d0, 2.2)); b.position.set(x, 1.3 + i * 0.26, -0.24); van.add(b); bulbs.push(b); });
+        for (let i = 1; i < 5; i++) { const b = new THREE.Mesh(bulbGeo, em(0xfff0d0, 2.2)); b.position.set(-0.7 + i * 0.28, 2.78, -0.24); van.add(b); bulbs.push(b); }
+        const vLight = new THREE.PointLight(0xffe2b8, 1.1, 4, 2); vLight.position.set(0, 2, 0.4); van.add(vLight);
+        // perfume bottles + flowers on vanity
+        [[-0.6, 0xff8fb8], [-0.4, 0xb98cff], [0.55, 0xffd166]].forEach(([x, c]) => { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.18, 12), new THREE.MeshStandardMaterial({ color: c, roughness: 0.05, transparent: true, opacity: 0.85 })); b.position.set(x, 1.1, 0.05); van.add(b); });
+        const vase = makePlant(0.45, 0xffffff); vase.position.set(0.25, 1.01, 0.05); van.add(vase);
+        const stool = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.26, 0.5, 20), gloss(0xff9ec0, 0.8)); stool.position.set(0, 0.25, 0.75); stool.castShadow = true; van.add(stool);
+        worldGroup.add(van); hit(van, 'mirror', new THREE.Vector3(4.35, 0, -1.7));
+        addMarker(4.35, 3.35, -3.6, 'mirror', new THREE.Vector3(4.35, 0, -1.7));
+        let vanFx = 0;
+        upd((t, dt) => {
+          vanFx = Math.max(0, vanFx - dt);
+          bulbs.forEach((b, i) => { const k = vanFx > 0 ? (0.5 + Math.max(0, Math.sin(t * 14 - i * 0.7)) * 1.6) : 1; b.material.color.setRGB(2.2 * k, 2.05 * k, 1.7 * k); });
+          vLight.intensity = 1.1 + vanFx * 1.2;
+        });
+        HOUSE.mirror = () => {
+          vanFx = 3; SFX.fanfare && SFX.fanfare(); showBubble('المراية تقول: جربي لوك جديد! ✨', 1800);
+          setTimeout(() => { const go = () => { location.href = 'shop3d.html#look'; }; (window.V2 && V2.wipe) ? V2.wipe(go, 'جربي اللوك') : go(); }, 1100);
+        };
+
+        // ---- photo camera (keeps the +5 coin "stage" mission) ----
+        const camG = new THREE.Group(); camG.position.set(6.1, 0, -1.6); camG.rotation.y = -0.8;
+        [0, 2.1, 4.2].forEach((a) => { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.2, 6), gloss(0x3a2a3a, 0.4)); l.position.set(Math.cos(a) * 0.18, 0.58, Math.sin(a) * 0.18); l.rotation.set(Math.sin(a) * 0.18, 0, -Math.cos(a) * 0.18); camG.add(l); });
+        const cam = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.34, 0.28), gloss(0xff6fa6, 0.35)); cam.position.y = 1.25; cam.castShadow = true; camG.add(cam);
+        const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.16, 16), gloss(0x222233, 0.1, 0.6)); lens.rotation.x = Math.PI / 2; lens.position.set(0, 1.25, 0.2); camG.add(lens);
+        const flash = new THREE.PointLight(0xffffff, 0, 8, 2); flash.position.set(0, 1.5, 0.5); camG.add(flash);
+        worldGroup.add(camG); hit(camG, 'stage', new THREE.Vector3(5.2, 0, -0.6));
+        addMarker(6.1, 2.15, -1.6, 'stage', new THREE.Vector3(5.2, 0, -0.6));
+        upd((t, dt) => { if (flash.intensity > 0) flash.intensity = Math.max(0, flash.intensity - dt * 30); });
+        HOUSE.flash = () => { flash.intensity = 12; };
+
+        // ---- study desk → classroom (left corner) ----
+        const deskG = new THREE.Group(); deskG.position.set(-6.5, 0, -1.3); deskG.rotation.y = Math.PI / 2;
+        const dTop = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.08, 0.8), gloss(0xfff6f0, 0.35)); dTop.position.y = 0.85; dTop.castShadow = true; deskG.add(dTop);
+        [[-0.85, -0.32], [0.85, -0.32], [-0.85, 0.32], [0.85, 0.32]].forEach(([x, z]) => { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.85, 8), gloss(0xd9b26a, 0.25, 1)); l.position.set(x, 0.42, z); deskG.add(l); });
+        const lap = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.03), gloss(0xffc3d6, 0.3)); lap.position.set(0.2, 1.1, -0.15); lap.rotation.x = -0.2; deskG.add(lap);
+        const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.32), em(0x9fd8ff, 1.3)); scr.position.set(0.2, 1.1, -0.13); scr.rotation.x = -0.2; deskG.add(scr);
+        const bks = [0xff6fa6, 0x7fd8ff, 0xffd166, 0xb98cff].forEach((c, i) => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.32, 0.24), gloss(c, 0.6)); b.position.set(-0.75 + i * 0.08, 1.05, -0.2); deskG.add(b); });
+        const lampS = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.2, 18, 1, true), gloss(0xffd166, 0.4)); lampS.position.set(-0.4, 1.38, -0.1); deskG.add(lampS);
+        const lampB = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), em(0xfff0c0, 2.4)); lampB.position.set(-0.4, 1.32, -0.1); deskG.add(lampB);
+        const lampL = new THREE.PointLight(0xffd6a0, 0.8, 3, 2); lampL.position.set(-0.4, 1.25, -0.1); deskG.add(lampL);
+        const chair = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.12, 18), gloss(0xff9ec0, 0.7)); chair.position.set(0, 0.5, 0.55); deskG.add(chair);
+        const chairB = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.08), gloss(0xff9ec0, 0.7)); chairB.position.set(0, 0.82, 0.82); deskG.add(chairB);
+        deskG.userData = { interactType: 'classroom', spot: new THREE.Vector3(-5.4, 0, -1.2) };
+        worldGroup.add(deskG); interactiveObjects.push(deskG);
+        addMarker(-6.5, 2.3, -1.3, 'classroom', new THREE.Vector3(-5.4, 0, -1.2));
+
+        // ---- dresser with school bag → closet modal (dress colour + bag packing) ----
+        const dr = new THREE.Group(); dr.position.set(6.25, 0, -3.7);
+        const drB = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.1, 0.7), gloss(0xfff6f0, 0.4)); drB.position.y = 0.55; drB.castShadow = true; dr.add(drB);
+        for (let i = 0; i < 3; i++) { const f = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.28, 0.03), gloss(0xffe0ea, 0.5)); f.position.set(0, 0.22 + i * 0.33, 0.36); dr.add(f); const k = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), gloss(0xd9b26a, 0.25, 1)); k.position.set(0, 0.22 + i * 0.33, 0.39); dr.add(k); }
+        const bag = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.55, 0.25), gloss(0xb98cff, 0.6)); bag.position.set(-0.25, 1.38, 0); bag.castShadow = true; dr.add(bag);
+        const bagP = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.22, 0.06), gloss(0xff6fa6, 0.6)); bagP.position.set(-0.25, 1.28, 0.15); dr.add(bagP);
+        const strap = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.025, 6, 16, Math.PI), gloss(0xb98cff, 0.6)); strap.position.set(-0.25, 1.65, 0); dr.add(strap);
+        worldGroup.add(dr); hit(dr, 'closet', new THREE.Vector3(5.6, 0, -1.9));
+        addMarker(6.25, 2.5, -3.6, 'closet', new THREE.Vector3(5.6, 0, -1.9));
+
+        // ---- plants, armchair, pink rug ----
+        const pl1 = makePlant(1.35); pl1.position.set(-6.8, 0, -3.9); worldGroup.add(pl1); hit(pl1, 'plant');
+        const pl2 = makePlant(1.1, 0xffc9da); pl2.position.set(3.0, 0, -4.0); worldGroup.add(pl2); hit(pl2, 'plant');
+        const plants = [pl1, pl2]; let plantWig = 0;
+        upd((t, dt) => { plantWig = Math.max(0, plantWig - dt); plants.forEach((p, i) => { p.rotation.z = Math.sin(t * 1.2 + i) * 0.015 + Math.sin(t * 16) * plantWig * 0.1; }); });
+        HOUSE.plant = () => { plantWig = 1.2; SFX.tap(); showBubble('نسقي الزرعة؟ 🌿💧', 1500); };
+        const arm = new THREE.Group(); arm.position.set(-3.3, 0, -0.9); arm.rotation.y = 0.5;
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.35, 0.85), gloss(0xffb3cb, 0.85)); seat.position.y = 0.42; seat.castShadow = true; arm.add(seat);
+        const abk = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.9, 24, 1, false, Math.PI / 2, Math.PI), gloss(0xffb3cb, 0.85)); abk.scale.z = 0.5; abk.position.set(0, 0.85, -0.3); abk.castShadow = true; arm.add(abk);
+        [[-0.4, -0.3], [0.4, -0.3], [-0.4, 0.3], [0.4, 0.3]].forEach(([x, z]) => { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.02, 0.25, 6), gloss(0xd9b26a, 0.25, 1)); l.position.set(x, 0.12, z); arm.add(l); });
+        worldGroup.add(arm);
+        const rug = new THREE.Mesh(new THREE.CircleGeometry(2.1, 48), new THREE.MeshStandardMaterial({ map: rugTex(), roughness: 1, transparent: true }));
+        rug.rotation.x = -Math.PI / 2; rug.scale.set(1.25, 1, 1); rug.position.set(-0.6, 0.012, 0.3); rug.receiveShadow = true; worldGroup.add(rug);
+
+        // Khala (aunt) by the window
         const khala = buildCharacter('#d4a8ff', true);
-        khala.position.set(0.8, 0, -1.6); khala.rotation.y = -0.35;
-        khala.userData.interactType = 'khala'; khala.userData.spot = new THREE.Vector3(0.4, 0, -0.6);
+        khala.position.set(1.2, 0, -2.0); khala.rotation.y = -0.35;
+        khala.userData.interactType = 'khala'; khala.userData.spot = new THREE.Vector3(0.8, 0, -1.0);
         worldGroup.add(khala); interactiveObjects.push(khala);
         animatedProps.push({ type: 'idle', mesh: khala });
 
-        ghalia.position.set(-1.5, 0, 1.2); ghalia.rotation.y = Math.PI;
-        showBubble('أهلاً في بيت الأحلام! انقري على الخزانة أو علامة ؟ 💖', 3200);
+        ghalia.position.set(-0.6, 0, 1.0); ghalia.rotation.y = Math.PI;
+        showBubble('أهلاً في غرفة الأحلام! انقري على أي شي 💖', 3200);
       }
 
       // --- WORLD 2: CAR RIDE ---
@@ -798,12 +998,16 @@
         joyZone.classList.toggle('hidden', isCar);
         carHud.classList.toggle('active', isCar);
 
-        if (name === 'bedroom') buildDreamhouseBedroom();
+        if (name !== 'bedroom') setWorldLight('day');
+        if (ILL) { if (name === 'bedroom') ILL.enter(); else ILL.leave(); }
+        if (name === 'bedroom' && ILL) { /* 2.5D illustrated dream house (house-scene.js) */ }
+        else if (name === 'bedroom') buildDreamhouseBedroom();
         else if (name === 'car') buildCarWorld();
         else if (name === 'classroom') buildClassroom();
         else if (name === 'shop') buildShop();
       }
 
+      let ILL = null;
       let joyId = null, joyX = 0, joyY = 0, walkTarget = null, pendingInteract = null, isModalOpen = false, happySpin = 0;
       function updateJoy(cx, cy) {
         const r = joyZone.getBoundingClientRect(), mx = r.width * 0.36;
@@ -823,10 +1027,12 @@
       canvas.addEventListener('pointerdown', (e) => {
         if (isModalOpen || currentWorld === 'car') return;
         ensureAudio();
+        if (ILL && ILL.active) { ILL.tap(e.clientX, e.clientY); return; }
         ptr.x = (e.clientX / window.innerWidth) * 2 - 1;
         ptr.y = -(e.clientY / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(ptr, camera);
 
+        if (ghalia.visible && raycaster.intersectObject(ghalia, true).length) { SFX.tap(); spawnSparkles(e.clientX, e.clientY, 8); ghaliaRig.react(); return; }
         const hits = raycaster.intersectObjects(interactiveObjects, true);
         if (hits.length > 0) {
           let o = hits[0].object;
@@ -848,10 +1054,12 @@
       });
 
       function handleInteract(type, spot) {
+        if (HOUSE[type] && currentWorld === 'bedroom') { HOUSE[type](); return; }
+        if (type === 'stage' && HOUSE.flash && currentWorld === 'bedroom') HOUSE.flash();
         if (type === 'khala') { showBubble('نورتي البيت يا غالية! 💗', 2400); return; }
         if (type === 'stage') {
           if (spot && ghalia.position.distanceTo(spot) > 1.2) { walkTarget = spot.clone(); pendingInteract = 'stage'; return; }
-          SFX.fanfare(); happySpin = 1.2; addCoins(5);
+          SFX.fanfare(); happySpin = 1.2; addCoins(5); ghaliaRig.expr('happy', 2.4);
           showBubble('لقطة نجمة باربي! +5 عملات 📸✨', 2400); return;
         }
         if (spot && ghalia.position.distanceTo(spot) > 1.2) {
@@ -872,7 +1080,7 @@
       // 8. Modals & HUD Buttons
       // ==========================================
       function openModal(id) { isModalOpen = true; document.getElementById(id).classList.add('open'); }
-      function closeModal(id) { isModalOpen = false; document.getElementById(id).classList.remove('open'); }
+      function closeModal(id) { isModalOpen = false; document.getElementById(id).classList.remove('open'); if (id === 'minigame-modal' && window.__ghaliaRig && window.__ghaliaRig.state().expr === 'thinking') window.__ghaliaRig.expr('neutral', 0.1); }
       document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { SFX.tap(); closeModal(b.dataset.close); }));
 
       document.getElementById('start-play-btn').addEventListener('click', () => {
@@ -951,6 +1159,7 @@
       function renderQuiz() {
         const q = quizQs[qIdx];
         document.getElementById('progress-pill').textContent = `${qIdx + 1} / 5`;
+        ghaliaRig.expr('thinking', 60);
         document.getElementById('feedback-text').textContent = '';
         const grid = document.getElementById('options-grid'); grid.innerHTML = '';
         if (q.type === 'color') {
@@ -978,17 +1187,17 @@
         if (qLock) return;
         const fb = document.getElementById('feedback-text');
         if (ok) {
-          qLock = true; btn.classList.add('correct-pop'); SFX.coin(); addCoins(5);
+          qLock = true; btn.classList.add('correct-pop'); SFX.coin(); addCoins(5); ghaliaRig.expr('happy', 2.2); ghaliaRig.react('jump');
           const r = btn.getBoundingClientRect(); spawnSparkles(r.left + r.width / 2, r.top + r.height / 2, 6);
           fb.textContent = 'ممتازة يا غالية! +5 عملات 🌟';
           setTimeout(() => {
             qLock = false; qIdx++;
-            if (qIdx >= 5) { closeModal('minigame-modal'); SFX.fanfare(); openModal('certificate-modal'); }
+            if (qIdx >= 5) { closeModal('minigame-modal'); SFX.fanfare(); openModal('certificate-modal'); ghaliaRig.expr('surprised', 2.5); }
             else renderQuiz();
           }, 800);
         } else {
           SFX.soft(); btn.classList.remove('wiggle'); void btn.offsetWidth; btn.classList.add('wiggle');
-          fb.textContent = 'جربي بطاقة أخرى يا أميرة 💕';
+          fb.textContent = 'جربي بطاقة أخرى يا أميرة 💕'; ghaliaRig.expr('sad', 1.4); setTimeout(() => { if (qLock === false && document.getElementById('minigame-modal').classList.contains('open')) ghaliaRig.expr('thinking', 60); }, 1450);
         }
       }
 
@@ -1022,7 +1231,7 @@
             }
             SFX.coin(); state.coins -= it.price; state.owned.push(it.id);
             updateCoinsUI(true); refreshGhalia(); spawnSparkles(e.clientX, e.clientY, 7);
-            showBubble(`مبروك ${it.name}! 🎉`, 2000);
+            showBubble(`مبروك ${it.name}! 🎉`, 2000); ghaliaRig.expr('happy', 2.5); ghaliaRig.react('jump');
             openShopModal();
           };
           sg.appendChild(btn);
@@ -1045,11 +1254,13 @@
         requestAnimationFrame(animate);
         const dt = Math.min(clock.getDelta(), 0.05);
         const t = clock.elapsedTime;
+        if (ILL && ILL.active) { if (happySpin > 0) { happySpin = 0; ghaliaRig.react('spin'); } ILL.frame(dt, joyX, joyY, isModalOpen); return; }
 
         animatedProps.forEach((p) => {
           if (p.type === 'float') { p.mesh.position.y = p.baseY + Math.sin(t * 2.5) * 0.1; }
           else if (p.type === 'pulse' && p.mesh.material) { p.mesh.material.opacity = 0.4 + Math.sin(t * 3.2) * 0.25; }
           else if (p.type === 'idle') { p.mesh.position.y = Math.sin(t * 2) * 0.025; }
+          else if (p.type === 'fn') { p.fn(t, dt); }
         });
 
         if (currentWorld === 'car' && carGroup) {
@@ -1073,7 +1284,7 @@
           camera.lookAt(0, 0.8, carZ - 3);
         } else {
           let mx = joyX, mz = joyY, walking = false;
-          const spd = 3.2;
+          const spd = Math.hypot(joyX, joyY) > 0.85 ? 5.6 : 3.2;
           if (!isModalOpen) {
             if (Math.hypot(mx, mz) > 0.12) {
               const len = Math.max(1, Math.hypot(mx, mz));
@@ -1098,33 +1309,54 @@
           ghalia.position.x = THREE.MathUtils.clamp(ghalia.position.x, worldBounds.minX, worldBounds.maxX);
           ghalia.position.z = THREE.MathUtils.clamp(ghalia.position.z, worldBounds.minZ, worldBounds.maxZ);
 
-          const [armL, armR] = ghalia.userData.arms;
-          if (happySpin > 0) { happySpin -= dt; ghalia.rotation.y += dt * 9; ghalia.position.y = Math.abs(Math.sin(happySpin * 8)) * 0.3; }
-          else if (walking) {
-            walkPhase += dt * 11;
-            ghalia.position.y = Math.abs(Math.sin(walkPhase)) * 0.06;
-            armL.rotation.x = Math.sin(walkPhase) * 0.45;
-            armR.rotation.x = -Math.sin(walkPhase) * 0.45;
-          } else {
-            ghalia.position.y = Math.sin(t * 2.2) * 0.02;
-            armL.rotation.x = THREE.MathUtils.lerp(armL.rotation.x, 0, dt * 8);
-            armR.rotation.x = THREE.MathUtils.lerp(armR.rotation.x, 0, dt * 8);
-          }
+          if (happySpin > 0) { happySpin = 0; ghaliaRig.react('spin'); }
+          ghaliaRig.update(dt, t);
 
           const isPortrait = window.innerWidth < window.innerHeight;
-          const off = isPortrait ? new THREE.Vector3(0, 4.3, 5.8) : new THREE.Vector3(0, 3.6, 5.0);
+          const off = currentWorld === 'bedroom' ? (isPortrait ? new THREE.Vector3(0, 5.6, 9.2) : new THREE.Vector3(0, 4.3, 7.4)) : (isPortrait ? new THREE.Vector3(0, 4.3, 5.8) : new THREE.Vector3(0, 3.6, 5.0));
           const desired = ghalia.position.clone().add(off);
-          desired.x = THREE.MathUtils.clamp(desired.x, worldBounds.minX + 1, worldBounds.maxX - 1);
-          desired.z = THREE.MathUtils.clamp(desired.z, -1.5, 8);
+          desired.x = currentWorld === 'bedroom' ? THREE.MathUtils.clamp(desired.x, -3.4, 3.4) : THREE.MathUtils.clamp(desired.x, worldBounds.minX + 1, worldBounds.maxX - 1);
+          desired.z = THREE.MathUtils.clamp(desired.z, -1.5, currentWorld === 'bedroom' ? 10.5 : 8);
           camera.position.lerp(desired, dt * 4.5);
-          camera.lookAt(ghalia.position.x, 1.0, ghalia.position.z - 0.6);
+          camera.lookAt(currentWorld === 'bedroom' ? THREE.MathUtils.clamp(ghalia.position.x, -4, 4) : ghalia.position.x, currentWorld === 'bedroom' ? 1.9 : 1.0, ghalia.position.z - (currentWorld === 'bedroom' ? 2.2 : 0.6));
         }
-        renderer.render(scene, camera);
+        if (currentWorld === 'bedroom') { sunPulse = Math.max(0, sunPulse - dt * 0.5); dirLight.intensity = 1.7 + sunPulse * 1.2 + Math.sin(t * 0.4) * 0.08; }
+        FX.render();
       }
 
+      ILL = null;
+      try {
+        if (window.V2ILL && window.GhaliaHouseScene && window.GhaliaSceneKit && !/[?&]classic\b/.test(location.search)) {
+          const go = (url, label) => { const f = () => { location.href = url; }; (window.V2 && V2.wipe) ? V2.wipe(f, label) : f(); };
+          ILL = V2ILL.create({
+            renderer, rig: ghaliaRig, mainCamera: camera, Module: GhaliaHouseScene,
+            onEvent: (type) => {
+              if (type === 'dressing-room') { showBubble('نختار فستان؟ يلا غرفة الملابس! 👗', 1600); setTimeout(() => go('index.html#room=dress', 'غرفة الملابس'), 500); }
+              else if (type === 'look') { showBubble('المراية تقول: جربي لوك جديد! ✨', 1600); setTimeout(() => go('shop3d.html#look', 'جربي اللوك'), 500); }
+              else if (type === 'lights') SFX.coin && SFX.coin();
+            },
+            onGhaliaTap: (x, y) => { SFX.tap(); spawnSparkles(x, y, 8); },
+            onTapObject: (name, x, y) => {
+              SFX.tap(); spawnSparkles(x, y, 6);
+              if (name === 'wardrobe' || name === 'mirror') SFX.fanfare && SFX.fanfare();
+              else if (name === 'unicorn') { openTypeModal('stage'); ILL.coinRain(); }
+              else if (name === 'teddy') { showBubble('دبدوب يقول: نجهّز الشنطة؟ 🧸🎒', 1500); setTimeout(() => openTypeModal('closet'), 700); }
+              else if (name === 'bed') showBubble('سرير الأميرة! نوم هني 💤', 1800);
+              else if (name === 'window') showBubble('شوفي الغروب! 🌅', 1800);
+              else if (name === 'neon-heart') SFX.fanfare && SFX.fanfare();
+              else if (name === 'lights') showBubble('أضواء الحفلة! ✨', 1600);
+            }
+          });
+            }
+      } catch (err) { console.warn('[world3d] illustrated house unavailable, using 3D room', err); ILL = null; }
       switchWorld('bedroom');
+      window.__w3 = { ill: () => ILL, interact: (t) => handleInteract(t, null), world: () => currentWorld, switchWorld, rig: ghaliaRig, ghalia, openQuiz: () => openTypeModal('classroom') };
       animate();
     })();
   </script>
+
+<script>/* v2 chrome: film grain + sunset wipe on the way back to the game */
+(function(){try{V2.grain(document.body,{opacity:.05,vignette:false});var b=document.getElementById('back-home');if(b)b.addEventListener('click',function(e){e.preventDefault();var h=b.getAttribute('href');V2.wipe(function(){location.href=h;},'البيت');});}catch(e){}})();</script>
+<script>V2.certify(document.querySelector('#certificate-modal .modal-card'));</script>
 </body>
 </html>

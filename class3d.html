@@ -490,6 +490,9 @@
       .modal-card{max-height:94vh;overflow-y:auto}
     a.home-btn{pointer-events:auto;text-decoration:none;color:inherit;border-color:#ff9ec4}
   </style>
+<link rel="stylesheet" href="fonts/v2.css">
+<link rel="stylesheet" href="chrome.css">
+<style>#ghalia-face-badge{position:absolute;top:-46px;left:50%;transform:translateX(-50%);width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#fff6fb,#ffd3e6);box-shadow:0 8px 24px rgba(120,30,80,.35),0 0 0 4px #fff;z-index:3;pointer-events:none}#minigame-modal .modal-card{position:relative;overflow:visible;margin-top:46px}</style>
 </head>
 <body>
   <canvas id="game-canvas"></canvas>
@@ -552,6 +555,22 @@
   </div>
 
   <script src="lib/three.min.js"></script>
+  <script src="lib/fx/CopyShader.js"></script>
+  <script src="lib/fx/LuminosityHighPassShader.js"></script>
+  <script src="lib/fx/EffectComposer.js"></script>
+  <script src="lib/fx/RenderPass.js"></script>
+  <script src="lib/fx/ShaderPass.js"></script>
+  <script src="lib/fx/MaskPass.js"></script>
+  <script src="lib/fx/UnrealBloomPass.js"></script>
+  <script src="chrome.js"></script>
+  <script src="look3d.js"></script>
+  <script src="ghalia-sprite-atlas.js"></script>
+  <script src="ghalia-sprite.js"></script>
+  <script src="ghalia-rig.js"></script>
+  <script src="scene-kit.js"></script>
+  <script src="class-art.js"></script>
+  <script src="class-scene.js"></script>
+  <script src="illustrated-world.js"></script>
   <script>
     (function () {
       'use strict';
@@ -967,111 +986,99 @@
       leaves.castShadow = true;
       scene.add(leaves);
 
+      // ===== v2 "Sunset Classroom" set dressing (art direction: concept-class.jpg) =====
+      const CFX = (function () {
+        const T = THREE, L = V2LOOK, updates = [];
+        const gloss = (hex, rough = 0.35, metal = 0) => new T.MeshStandardMaterial({ color: hex, roughness: rough, metalness: metal, envMapIntensity: 0.9 });
+        const ctex = (w, h, draw, rep) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 4; if (rep) { t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rep[0], rep[1]); } return t; };
+        // warm dusk atmosphere
+        scene.background = new T.Color(0x3a2036); scene.fog = new T.Fog(0x5a2f45, 18, 34);
+        hemiLight.color.set(0xffd9c8); hemiLight.groundColor.set(0x7a4058); hemiLight.intensity = 0.42;
+        dirLight.color.set(0xffab6e); dirLight.intensity = 1.6; dirLight.position.set(-12, 6.5, -2.5); dirLight.shadow.mapSize.set(V2.tier() === 'low' ? 1024 : 2048, V2.tier() === 'low' ? 1024 : 2048); dirLight.shadow.radius = 4;
+        const fill = new T.PointLight(0xffc9e0, 0.5, 14, 2); fill.position.set(2, 3.6, 2); scene.add(fill);
+        const ceil = new T.Mesh(new T.BoxGeometry(12.4, 0.2, 16), new T.MeshStandardMaterial({ color: 0xffe6dc, roughness: 0.9 })); ceil.position.set(0, 4.7, 2.5); scene.add(ceil);
+        // glossy light-wood floor
+        floorMesh.material = new T.MeshStandardMaterial({ roughness: 0.3, envMapIntensity: 1.0, map: ctex(1024, 1024, (x, w, h) => {
+          const rows = 10, ph = h / rows;
+          for (let r = 0; r < rows; r++) { let xx = -(r % 2) * 150; while (xx < w) { const len = 240 + Math.random() * 200; x.fillStyle = `hsl(${28 + Math.random() * 6},${46 + Math.random() * 8}%,${62 + Math.random() * 8}%)`; x.fillRect(xx, r * ph, len, ph); for (let k = 0; k < 10; k++) { x.strokeStyle = `rgba(120,60,20,${0.04 + Math.random() * 0.05})`; x.beginPath(); const yy = r * ph + Math.random() * ph; x.moveTo(xx, yy); x.bezierCurveTo(xx + len * .3, yy + 5, xx + len * .6, yy - 5, xx + len, yy); x.stroke(); } x.fillStyle = 'rgba(90,40,15,.35)'; x.fillRect(xx, r * ph, 2, ph); xx += len; } x.fillStyle = 'rgba(90,40,15,.35)'; x.fillRect(0, r * ph, w, 2); }
+        }, [3, 3]) });
+        rugMesh.material.color.set(0xffb8cf); innerRug.material.color.set(0xe5ccff);
+        wallMat.color.set(0xf4c6c0); trimMat.color.set(0xfff3ea); trimMat.roughness = 0.4;
+        // big arched sunset window on the left wall (replaces the small one)
+        winFrame.visible = false; winGlass.visible = false;
+        const WW = 2.6, WH = 3.2, win = new T.Group();
+        const shape = new T.Shape(), r = WW / 2; shape.moveTo(-r, 0); shape.lineTo(r, 0); shape.lineTo(r, WH - r); shape.absarc(0, WH - r, r, 0, Math.PI, false); shape.lineTo(-r, 0);
+        const g = new T.ShapeGeometry(shape, 24), pa = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < pa.count; i++) uv.setXY(i, pa.getX(i) / WW + 0.5, pa.getY(i) / WH);
+        const sunTex = new T.TextureLoader().load('img/sunset-window.jpg'); sunTex.encoding = T.sRGBEncoding;
+        win.add(new T.Mesh(g, new T.MeshBasicMaterial({ map: sunTex, color: new T.Color(1.3, 1.18, 1.08), toneMapped: false })));
+        const fm = gloss(0xffffff, 0.35); const ap = []; for (let i = 0; i <= 32; i++) { const a = i / 32 * Math.PI; ap.push(new T.Vector3(Math.cos(a) * r, WH - r + Math.sin(a) * r, .05)); }
+        win.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(r, 0, .05), ...ap, new T.Vector3(-r, 0, .05)]), 80, 0.07, 8, false), fm));
+        const mv = new T.Mesh(new T.BoxGeometry(0.06, WH - .1, 0.06), fm); mv.position.set(0, (WH - .1) / 2, .06); win.add(mv);
+        [0.9, 1.9].forEach((y) => { const m = new T.Mesh(new T.BoxGeometry(WW, 0.05, 0.06), fm); m.position.set(0, y, .06); win.add(m); });
+        const sill = new T.Mesh(new T.BoxGeometry(WW + .4, .1, .4), fm); sill.position.set(0, -.02, .18); win.add(sill);
+        win.position.set(-5.76, 0.95, -1.6); win.rotation.y = Math.PI / 2; scene.add(win);
+        const shafts = L.sunShafts(2.4, 4.5); shafts.position.set(-4.1, 2.1, -1.6); shafts.rotation.set(0, Math.PI / 2, -0.9); scene.add(shafts); updates.push(shafts.userData.update);
+        // chalkboard with chalk writing
+        boardFrame.material = gloss(0xc48a52, 0.5);
+        wbCtx.fillStyle = '#2f5a48'; wbCtx.fillRect(0, 0, 512, 256);
+        for (let i = 0; i < 3000; i++) { wbCtx.fillStyle = `rgba(255,255,255,${Math.random() * 0.03})`; wbCtx.fillRect(Math.random() * 512, Math.random() * 256, 3, 2); }
+        wbCtx.fillStyle = 'rgba(255,255,255,.08)'; wbCtx.beginPath(); wbCtx.ellipse(180, 130, 140, 60, -0.2, 0, 7); wbCtx.fill();
+        wbCtx.textAlign = 'center'; wbCtx.fillStyle = '#fdf6e8'; wbCtx.font = 'bold 40px Lalezar, Tajawal, sans-serif'; wbCtx.fillText('أهلاً بكم في الصف', 256, 70);
+        wbCtx.font = 'bold 30px Tajawal, sans-serif'; wbCtx.fillStyle = '#ffd1e6'; wbCtx.fillText('A • B • C   أ • ب • ت', 256, 215);
+        wbTex.needsUpdate = true; boardSurface.material.color = new T.Color(0.95, 0.95, 0.95);
+        const tray = new T.Mesh(new T.BoxGeometry(4.3, 0.06, 0.18), gloss(0xc48a52, 0.5)); tray.position.set(0, -1.0, 0.1); boardGroup.add(tray);
+        // floating colourful letters in front of the board
+        const letters = [['A', '#ff5f9e'], ['ب', '#ffb347'], ['C', '#5ad1ff'], ['أ', '#9b7bff'], ['B', '#4fd18b'], ['ت', '#ffd166']];
+        const lspr = letters.map(([ch, col], i) => { const s = L.letterSprite(ch, col); s.scale.setScalar(0.62); s.position.set(-1.6 + i * 0.64, 2.05 + (i % 2) * 0.28, -4.75); s.userData.base = s.position.y; s.userData.ph = i * 1.1; scene.add(s); return s; });
+        updates.push((t) => lspr.forEach((s) => { s.position.y = s.userData.base + Math.sin(t * 1.6 + s.userData.ph) * 0.09; s.material.rotation = Math.sin(t * 1.2 + s.userData.ph) * 0.12; }));
+        // neon star above the board
+        topStar.visible = false;
+        const star = L.neon(L.starPath(0.42), 0xffd166, 0.04, true); star.position.set(0, 4.02, -5.12); scene.add(star);
+        const starL = new T.PointLight(0xffc860, 1.0, 5, 2); starL.position.set(0, 3.9, -4.6); scene.add(starL);
+        let starFx = 0;
+        updates.push((t, dt) => { starFx = Math.max(0, starFx - dt); const k = (0.92 + 0.08 * Math.sin(t * 3)) * (1 + starFx * 1.2); star.userData.mat.color.setRGB(2.6 * k, 2.1 * k, 0.9 * k); star.rotation.z = starFx > 0 ? Math.sin(t * 20) * 0.15 * starFx : 0; starL.intensity = 1.0 * k; });
+        // fairy lights along the top of the back & left walls
+        const fl = L.fairyLights([new T.Vector3(-5.6, 4.55, -5.15), new T.Vector3(-1.9, 4.55, -5.15), new T.Vector3(1.9, 4.55, -5.15), new T.Vector3(5.6, 4.55, -5.15)], 34);
+        scene.add(fl); let chase = 0; updates.push((t, dt) => { chase = Math.max(0, chase - dt); fl.userData.update(t, chase > 0); });
+        // plants
+        function plant(x, z, s, potCol) { const g = new T.Group(); const p = new T.Mesh(new T.CylinderGeometry(.28, .2, .5, 18), gloss(potCol, .35)); p.position.y = .25; p.castShadow = true; g.add(p);
+          for (let i = 0; i < 12; i++) { const lf = new T.Mesh(new T.SphereGeometry(.16, 10, 8), gloss(i % 2 ? 0x3f9a5a : 0x63c476, .5)); lf.scale.set(.55, 1.9, .18); const a = i / 12 * 6.283; lf.position.set(Math.cos(a) * .16, .78 + (i % 3) * .12, Math.sin(a) * .16); lf.rotation.set(Math.sin(a) * .5, -a, Math.cos(a) * .5); lf.castShadow = true; g.add(lf); }
+          g.scale.setScalar(s); g.position.set(x, 0, z); scene.add(g); return g; }
+        pot.visible = false; leaves.visible = false;
+        const plants = [plant(-4.9, -4.5, 1.5, 0xffc9da), plant(4.9, -4.6, 1.3, 0xfff3ea), plant(-5.2, 0.6, 1.1, 0xd4f0e6)];
+        updates.push((t) => plants.forEach((p, i) => { p.rotation.z = Math.sin(t * 1.1 + i) * 0.015; }));
+        // Ghalia's glowing desk: brighter ring, light pillar, pink key light
+        glowRingMat.color = new T.Color(0xff6fa6).multiplyScalar(2.2); glowRingMat.toneMapped = false; glowRingMat.blending = T.AdditiveBlending; glowRingMat.depthWrite = false;
+        const pillarTex = ctex(64, 256, (x) => { const gr = x.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, 'rgba(255,170,210,0)'); gr.addColorStop(1, 'rgba(255,170,210,.6)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 256); });
+        const pillar = new T.Mesh(new T.CylinderGeometry(0.95, 1.05, 3.2, 32, 1, true), new T.MeshBasicMaterial({ map: pillarTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide, toneMapped: false, opacity: 0.25 }));
+        pillar.position.set(0, 1.6, -1.45); scene.add(pillar);
+        const deskL = new T.PointLight(0xff8fc0, 1.3, 4.5, 2); deskL.position.set(0, 1.8, -1.2); scene.add(deskL);
+        floatingStar.material.emissiveIntensity = 1.2; floatingStar.material.emissive.set(0xffb020);
+        updates.push((t) => { pillar.material.opacity = 0.2 + Math.sin(t * 2.4) * 0.07; deskL.intensity = 1.1 + Math.sin(t * 2.4) * 0.3; });
+        // celebration
+        const burst = L.burst(scene);
+        const fx = L.setup(renderer, scene, camera, { exposure: 0.82 });
+        return {
+          update(t, dt) { updates.forEach((f) => f(t, dt)); burst.update(dt); },
+          render() { fx.render(); },
+          celebrate(x, y) {
+            starFx = 1.4; chase = 2;
+            burst.fire(floatingStar.position.clone().add(new T.Vector3(0, 0.2, 0)));
+            if (x != null) L.starBurstAt(x, y, 14);
+            L.coinRain(22);
+          }
+        };
+      })();
+
       // ==========================================
       // 6. Ghalia 3D Character (Modest, Cute, Animated)
       // ==========================================
-      const ghalia = new THREE.Group();
-
-      // Long Modest Pastel Dress (Pink + Lavender sash)
-      const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.42, 0.78, 20), pastelMat(0xff9ec4));
-      skirt.position.y = 0.46;
-      skirt.castShadow = true;
-      ghalia.add(skirt);
-
-      const bodice = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.21, 0.38, 18), pastelMat(0xffb8d6));
-      bodice.position.y = 0.98;
-      bodice.castShadow = true;
-      ghalia.add(bodice);
-
-      const sash = new THREE.Mesh(new THREE.CylinderGeometry(0.215, 0.215, 0.08, 18), pastelMat(0xc79dff));
-      sash.position.y = 0.84;
-      ghalia.add(sash);
-
-      // Shoes peeking under long dress
-      const shoeMat = pastelMat(0xffffff);
-      const leftShoe = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), shoeMat);
-      leftShoe.position.set(-0.12, 0.07, 0.08);
-      ghalia.add(leftShoe);
-      const rightShoe = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), shoeMat);
-      rightShoe.position.set(0.12, 0.07, 0.08);
-      ghalia.add(rightShoe);
-
-      // Long Sleeves & Hands
-      function createArm(side) {
-        const armPivot = new THREE.Group();
-        armPivot.position.set(side * 0.24, 1.1, 0);
-        const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.06, 0.36, 12), pastelMat(0xffb8d6));
-        sleeve.position.y = -0.18;
-        sleeve.castShadow = true;
-        armPivot.add(sleeve);
-
-        const hand = new THREE.Mesh(new THREE.SphereGeometry(0.058, 12, 12), pastelMat(0xfcd5b5));
-        hand.position.y = -0.38;
-        armPivot.add(hand);
-        return armPivot;
-      }
-      const leftArm = createArm(-1);
-      const rightArm = createArm(1);
-      ghalia.add(leftArm);
-      ghalia.add(rightArm);
-
-      // Head
-      const headGroup = new THREE.Group();
-      headGroup.position.y = 1.42;
-
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 24, 24), pastelMat(0xfcd5b5, 0.7));
-      head.castShadow = true;
-      headGroup.add(head);
-
-      // Eyes & Rosy Cheeks
-      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x3b2338 });
-      const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 12), eyeMat);
-      leftEye.position.set(-0.09, 0.02, 0.24);
-      headGroup.add(leftEye);
-
-      const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 12), eyeMat);
-      rightEye.position.set(0.09, 0.02, 0.24);
-      headGroup.add(rightEye);
-
-      const cheekMat = new THREE.MeshBasicMaterial({ color: 0xff9ebc });
-      const leftCheek = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), cheekMat);
-      leftCheek.position.set(-0.15, -0.05, 0.21);
-      headGroup.add(leftCheek);
-
-      const rightCheek = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), cheekMat);
-      rightCheek.position.set(0.15, -0.05, 0.21);
-      headGroup.add(rightCheek);
-
-      // Hair + Cute Twin Buns + Pastel Bow
-      const hairMat = pastelMat(0x4a2c2a, 0.75);
-      const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.285, 22, 22, 0, Math.PI * 2, 0, Math.PI * 0.62), hairMat);
-      hairCap.rotation.x = -0.22;
-      headGroup.add(hairCap);
-
-      const bunL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 14), hairMat);
-      bunL.position.set(-0.24, 0.16, -0.06);
-      headGroup.add(bunL);
-
-      const bunR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 14), hairMat);
-      bunR.position.set(0.24, 0.16, -0.06);
-      headGroup.add(bunR);
-
-      // Pastel Bow
-      const bowMat = pastelMat(0xff6fa8);
-      const bowL = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.14, 8), bowMat);
-      bowL.rotation.z = -Math.PI / 2;
-      bowL.position.set(-0.07, 0.28, 0.05);
-      headGroup.add(bowL);
-
-      const bowR = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.14, 8), bowMat);
-      bowR.rotation.z = Math.PI / 2;
-      bowR.position.set(0.07, 0.28, 0.05);
-      headGroup.add(bowR);
-
-      ghalia.add(headGroup);
+      const ghaliaRig = GhaliaRig.create({ dress: '#ff9ec4', camera });
+      const ghalia = ghaliaRig.root; window.__ghaliaRig = ghaliaRig;
       ghalia.position.set(0, 0, 2.4);
       ghalia.rotation.y = Math.PI; // Facing towards the whiteboard/desks
       scene.add(ghalia);
+      (function () { const card = document.querySelector('#minigame-modal .modal-card'); if (!card) return; const c = document.createElement('canvas'); c.id = 'ghalia-face-badge'; c.width = c.height = 168; card.appendChild(c); ghaliaRig.portrait(c); })();
 
       // Tap-to-walk target ring
       const targetRing = new THREE.Mesh(
@@ -1175,11 +1182,14 @@
       function handleSceneTap(clientX, clientY) {
         if (isModalOpen) return;
         ensureAudio();
+        if (ILL && ILL.active) { ILL.tap(clientX, clientY); return; }
 
         pointer.x = (clientX / window.innerWidth) * 2 - 1;
         pointer.y = -(clientY / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(pointer, camera);
 
+        // 0. Tap on Ghalia → wave / jump / spin
+        if (raycaster.intersectObject(ghalia, true).length) { SFX.tap(); spawnUISparkles(clientX, clientY, 6); ghaliaRig.react(); return; }
         // 1. Check interactive glowing objects
         const hitInteractive = raycaster.intersectObjects(interactiveObjects, true);
         if (hitInteractive.length > 0) {
@@ -1210,6 +1220,7 @@
       });
 
       function goToDeskAndOpen() {
+        if (ILL && ILL.active) { showBubble('هيا إلى مقعدي الجميل! ✨', 1600); ILL.world.tap('ghalia-desk'); return; }
         const deskSpot = new THREE.Vector3(0, 0, -0.35);
         const dist = ghalia.position.distanceTo(deskSpot);
         if (dist < 1.15) {
@@ -1291,6 +1302,7 @@
 
       function closeMiniGame() {
         isModalOpen = false;
+        if (ghaliaRig.state().expr === 'thinking') ghaliaRig.expr('neutral', 0.1);
         minigameModal.classList.remove('open');
       }
 
@@ -1300,6 +1312,7 @@
       });
 
       function renderQuestion() {
+        ghaliaRig.expr('thinking', 60);
         const q = roundQuestions[currentQuestionIdx];
         progressPill.textContent = `${currentQuestionIdx + 1} / ${TOTAL_QUESTIONS}`;
         feedbackText.textContent = '';
@@ -1351,7 +1364,10 @@
           happySpinTimer = 1.0;
           const rect = btn.getBoundingClientRect();
           spawnUISparkles(rect.left + rect.width / 2, rect.top + rect.height / 2, 6);
+          try { CFX.celebrate(rect.left + rect.width / 2, rect.top + rect.height / 2); } catch (err) {}
+          try { if (ILL && ILL.active) { ILL.starBurst(); ILL.coinRain(); } } catch (err) {}
           feedbackText.textContent = 'ممتازة يا غالية! +5 عملات 🌟';
+          ghaliaRig.expr('happy', 2.2); ghaliaRig.react('jump');
 
           setTimeout(() => {
             answeringLock = false;
@@ -1370,6 +1386,7 @@
           void btn.offsetWidth;
           btn.classList.add('wiggle');
           feedbackText.textContent = 'قريبة جداً! جربي بطاقة أخرى 💕';
+          ghaliaRig.expr('sad', 1.4); setTimeout(() => { if (!answeringLock && minigameModal.classList.contains('open')) ghaliaRig.expr('thinking', 60); }, 1450);
         }
       }
 
@@ -1377,6 +1394,7 @@
         isModalOpen = true;
         SFX.fanfare();
         certModal.classList.add('open');
+        ghaliaRig.expr('surprised', 2.5);
         happySpinTimer = 2.0;
       }
 
@@ -1387,6 +1405,7 @@
         certModal.classList.remove('open');
         isModalOpen = false;
         showBubble('حصلتِ على نجمة الصف! 🌟', 2800);
+        ghaliaRig.expr('happy', 2.5); ghaliaRig.react('jump');
       });
 
       // ==========================================
@@ -1399,6 +1418,15 @@
         requestAnimationFrame(animate);
         const dt = Math.min(clock.getDelta(), 0.05);
         const t = clock.elapsedTime;
+        if (ILL && ILL.active) {
+          let mx = joyX, mz = joyY;
+          if (keys['ArrowLeft'] || keys['KeyA']) mx -= 1; if (keys['ArrowRight'] || keys['KeyD']) mx += 1;
+          if (keys['ArrowUp'] || keys['KeyW']) mz -= 1; if (keys['ArrowDown'] || keys['KeyS']) mz += 1;
+          if ((mx !== joyX || mz !== joyY) && Math.hypot(mx, mz) > 0.12) { const l = Math.hypot(mx, mz), k = (keys['ShiftLeft'] || keys['ShiftRight']) ? 1 : 0.8; mx = mx / l * k; mz = mz / l * k; }
+          if (happySpinTimer > 0) { happySpinTimer = 0; ghaliaRig.react('spin'); }
+          ILL.frame(dt, mx, mz, isModalOpen);
+          return;
+        }
 
         // Floating Star & Glowing Desk Ring Pulse
         floatingStar.position.y = 1.45 + Math.sin(t * 2.6) * 0.1;
@@ -1415,7 +1443,7 @@
         if (keys['ArrowDown'] || keys['KeyS']) moveZ += 1;
 
         let isWalking = false;
-        const speed = 3.2;
+        const speed = (Math.hypot(joyX, joyY) > 0.85 || keys['ShiftLeft'] || keys['ShiftRight']) ? 5.6 : 3.2;
 
         if (!isModalOpen) {
           if (Math.hypot(moveX, moveZ) > 0.12) {
@@ -1459,40 +1487,26 @@
           targetRing.material.opacity = Math.max(0, targetRing.material.opacity - dt * 2);
         }
 
-        // Character Animations (Walk / Idle / Happy Jump)
-        if (happySpinTimer > 0) {
-          happySpinTimer -= dt;
-          ghalia.position.y = Math.abs(Math.sin(t * 10)) * 0.25;
-          ghalia.rotation.y += dt * 6;
-        } else if (isWalking) {
-          walkPhase += dt * 11;
-          ghalia.position.y = Math.abs(Math.sin(walkPhase)) * 0.06;
-          leftArm.rotation.x = Math.sin(walkPhase) * 0.45;
-          rightArm.rotation.x = -Math.sin(walkPhase) * 0.45;
-          headGroup.rotation.z = Math.sin(walkPhase * 0.5) * 0.04;
-        } else {
-          // Gentle Idle Breathing
-          ghalia.position.y = Math.sin(t * 2.2) * 0.02;
-          leftArm.rotation.x = THREE.MathUtils.lerp(leftArm.rotation.x, 0, dt * 8);
-          rightArm.rotation.x = THREE.MathUtils.lerp(rightArm.rotation.x, 0, dt * 8);
-          headGroup.rotation.z = Math.sin(t * 1.5) * 0.03;
-        }
+        // Character Animations: procedural rig (walk/run/idle/reactions/face)
+        if (happySpinTimer > 0) { happySpinTimer = 0; ghaliaRig.react('spin'); }
+        ghaliaRig.update(dt, t);
 
         // Smooth Third-Person Follow Camera
         const isPortrait = window.innerWidth < window.innerHeight;
         const camOffset = isPortrait
-          ? new THREE.Vector3(0, 4.4, 5.8)
-          : new THREE.Vector3(0, 3.6, 5.0);
+          ? new THREE.Vector3(0, 4.35, 7.8)
+          : new THREE.Vector3(0, 4.3, 6.6);
 
         const desiredCamPos = ghalia.position.clone().add(camOffset);
         desiredCamPos.x = THREE.MathUtils.clamp(desiredCamPos.x, -3.5, 3.5);
-        desiredCamPos.z = THREE.MathUtils.clamp(desiredCamPos.z, -1.5, 7.6);
+        desiredCamPos.z = THREE.MathUtils.clamp(desiredCamPos.z, -1.5, 9.6);
         camera.position.lerp(desiredCamPos, dt * 4.5);
 
-        const lookTarget = ghalia.position.clone().add(new THREE.Vector3(0, 1.0, -0.6));
+        const lookTarget = ghalia.position.clone().add(new THREE.Vector3(0, 1.7, -2.0));
         camera.lookAt(lookTarget);
 
-        renderer.render(scene, camera);
+        CFX.update(t, dt);
+        CFX.render();
       }
 
       function lerpAngle(a, b, t) {
@@ -1503,8 +1517,30 @@
 
       // Initial Welcome Bubble
       setTimeout(() => showBubble('أهلاً يا غالية! انقري على المقعد المضيء 🌸', 3200), 600);
+      let ILL = null;
+      try {
+        if (window.V2ILL && window.GhaliaClassScene && window.GhaliaSceneKit && !/[?&]classic\b/.test(location.search)) {
+          ILL = V2ILL.create({
+            renderer, rig: ghaliaRig, mainCamera: camera, Module: GhaliaClassScene,
+            onEvent: (type, d) => {
+              if (type === 'start-class-game') { if (!isModalOpen) openMiniGame(); }
+              else if (type === 'board') showBubble('نقرأ الحروف مع المعلمة! 📚', 1600);
+              else if (type === 'star') { SFX.coin && SFX.coin(); showBubble('نجمة الصف تلمع! ⭐', 1600); }
+              else if (type === 'letter' && d.char) showBubble('حرف ' + d.char + ' ✨', 1200);
+            },
+            onGhaliaTap: (x, y) => { SFX.tap(); spawnUISparkles(x, y, 8); },
+            onTapObject: (name, x, y) => { SFX.tap(); spawnUISparkles(x, y, 6); }
+          });
+          ILL.enter();
+        }
+      } catch (err) { console.warn('[class3d] illustrated classroom unavailable, using 3D room', err); ILL = null; }
+      window.__c3 = { ill: () => ILL, openMiniGame };
       animate();
     })();
   </script>
+
+<script>/* v2 chrome: film grain + sunset wipe on the way back to the game */
+(function(){try{V2.grain(document.body,{opacity:.05,vignette:false});var b=document.getElementById('back-home');if(b)b.addEventListener('click',function(e){e.preventDefault();var h=b.getAttribute('href');V2.wipe(function(){location.href=h;},'البيت');});}catch(e){}})();</script>
+<script>V2.certify(document.querySelector('#certificate-modal .modal-card'));</script>
 </body>
 </html>

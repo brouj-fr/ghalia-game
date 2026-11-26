@@ -14,19 +14,25 @@ S.wings='<svg viewBox="0 0 200 130"><path d="M100 50 C70 -10 4 0 10 50 C14 80 60
 S.tiara='<svg viewBox="0 0 120 60"><path d="M8 54 L20 22 L38 40 L60 4 L82 40 L100 22 L112 54Z" fill="#e8f4ff" stroke="#9ec9ff" stroke-width="4"/><circle cx="60" cy="30" r="9" fill="#7ed6ff" stroke="#fff" stroke-width="3"/><circle cx="30" cy="44" r="5" fill="#ff7eb6"/><circle cx="90" cy="44" r="5" fill="#ff7eb6"/></svg>';
 function star(cx,cy,r,c){var p='';for(var i=0;i<10;i++){var a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;p+=(i?'L':'M')+(cx+rr*Math.cos(a)).toFixed(1)+' '+(cy+rr*Math.sin(a)).toFixed(1);}return '<path d="'+p+'Z" fill="'+c+'" stroke="#7a2a8a" stroke-width="3"/>';}
 var ITEMS=[
- {id:'heartclip',price:10,name:'بكلة قلب',slot:'clipL',w:30,r:1,al:'center',front:S.heartclip,tip:'بكلة قلب 💗'},
- {id:'starsun',price:15,name:'نظارة نجوم',slot:'eyes',w:70,r:.4,al:'center',front:S.starsun,tip:'نظارة النجوم 🌟'},
- {id:'bowGold',price:20,name:'فيونكة ذهبية',slot:'bowR',w:42,r:.7,al:'center',front:S.bowGold,tip:'فيونكة ذهبية ✨'},
- {id:'fcrown',price:25,name:'تاج ورد',slot:'top',w:86,r:.36,al:'bottom',dy:4,front:S.fcrown,tip:'تاج الورد 🌸'},
- {id:'purse',price:30,name:'شنطة يد',slot:'hand',w:40,r:1,al:'top',dy:-4,front:S.purse,tip:'شنطة يد حلوة 👛'},
- {id:'balloon',price:35,name:'بالون',slot:'hand',w:30,r:2.5,al:'bottom',dy:10,front:S.balloon,tip:'بالون قلب 🎈'},
- {id:'wings',price:50,name:'جناح فراشة',slot:'cape',w:200,r:.65,al:'top',dy:-12,back:S.wings,icon:S.wings,tip:'جناح الفراشة 🦋'},
- {id:'tiara',price:60,name:'تاج الماس',slot:'top',w:64,r:.5,al:'bottom',dy:2,front:S.tiara,tip:'تاج الماس 💎'}
+ {id:'heartclip',price:10,name:'بكلة قلب',slot:'clipL',w:30,r:0.79,al:'center',front:S.heartclip,tip:'بكلة قلب 💗'},
+ {id:'starsun',price:15,name:'نظارة نجوم',slot:'eyes',w:62,dx:6,r:0.47,al:'center',front:S.starsun,tip:'نظارة النجوم 🌟'},
+ {id:'bowGold',price:20,name:'فيونكة ذهبية',slot:'bowR',w:42,r:1.17,al:'center',front:S.bowGold,tip:'فيونكة ذهبية ✨'},
+ {id:'fcrown',price:25,name:'تاج ورد',slot:'top',w:86,r:0.65,al:'bottom',dy:4,front:S.fcrown,tip:'تاج الورد 🌸'},
+ {id:'purse',price:30,name:'شنطة يد',slot:'hand',w:40,r:0.96,al:'top',dy:-4,front:S.purse,tip:'شنطة يد حلوة 👛'},
+ {id:'balloon',price:35,name:'بالون',slot:'hand',w:30,r:1.48,al:'bottom',dy:10,front:S.balloon,tip:'بالون قلب 🎈'},
+ {id:'wings',price:50,name:'جناح فراشة',slot:'cape',w:150,r:0.9,al:'top',dy:-12,back:S.wings,icon:S.wings,tip:'جناح الفراشة 🦋'},
+ {id:'tiara',price:60,name:'تاج الماس',slot:'top',w:64,r:0.71,al:'bottom',dy:2,front:S.tiara,tip:'تاج الماس 💎'}
 ];
+/* v2: illustrated Pixar-style item art replaces the flat SVGs (same slots, art aspect ratios) */
+ITEMS.forEach(function(it){var im='<img src="img/items/'+it.id+'.png" alt="" draggable="false" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(60,0,40,.35))">';if(it.back){it.back=im;it.icon=im;}else it.front=im;});
 ITEMS.forEach(function(it){ACC[it.id]=it;TOOLS[it.id]={name:it.name,svg:it.icon||it.front,tip:it.tip};});
 var owned=[];try{owned=JSON.parse(localStorage.getItem('ghalia_owned')||'[]');}catch(e){owned=[];}
 function save(){try{localStorage.setItem('ghalia_owned',JSON.stringify(owned));}catch(e){}}
 function has(id){return owned.indexOf(id)>=0;}
+/* v2: colour picked in the 3D shop (hue shift) + look saved from the 3D try-on */
+try{GAME.hue=JSON.parse(localStorage.getItem('ghalia_acc_hue')||'{}')||{};}catch(e){GAME.hue={};}
+try{var look=JSON.parse(localStorage.getItem('ghalia_look')||'[]');if(Array.isArray(look))look.forEach(function(id){if(has(id)&&ACC[id])GAME.CH.ghalia.acc[ACC[id].slot]=id;});}catch(e){}
+function webgl(){try{var c=document.createElement('canvas');return !!(window.WebGLRenderingContext&&(c.getContext('webgl2')||c.getContext('webgl')));}catch(e){return false;}}
 /* bought items show up in the dress-up room toolbar */
 var dressBase=ROOMS.dress.tools.slice();
 Object.defineProperty(ROOMS.dress,'tools',{get:function(){return dressBase.concat(ITEMS.filter(function(i){return has(i.id);}).map(function(i){return i.id;}));},configurable:true});
@@ -39,7 +45,8 @@ ROOMS.shop={name:'المحل',color:'linear-gradient(135deg,#fff1a8,#ffb3d9)',bg
  icon:'<svg viewBox="0 0 100 100"><path d="M10 40 L18 14 H82 L90 40Z" fill="#ff5fa2"/><path d="M10 40 Q20 52 30 40 Q40 52 50 40 Q60 52 70 40 Q80 52 90 40" fill="#fff" stroke="#ff5fa2" stroke-width="3"/><rect x="16" y="46" width="68" height="44" rx="6" fill="#fff" stroke="#ff5fa2" stroke-width="4"/><circle cx="50" cy="68" r="14" fill="#ffd34d" stroke="#e0a400" stroke-width="4"/><text x="50" y="75" font-size="18" text-anchor="middle" fill="#a06800" font-weight="900">$</text></svg>',
  spawn:{ghalia:[1080,690,1]},
  intro:'أهلاً بالمحل! 🛍️ اشتري أغراض حلوة بالعملات 🪙',
- init:function(r){var sc=A.scene();
+ init:function(r){if(webgl()&&!/classic=1/.test(location.hash)){setTimeout(function(){location.href='shop3d.html#rack';},120);return;}
+  var sc=A.scene();
   var grid=document.createElement('div');grid.className='shopgrid';sc.appendChild(grid);
   var hint=document.createElement('div');hint.className='shopnote';hint.textContent='🪙 اجمعي عملات من الألعاب والمدرسة';sc.appendChild(hint);
   var go=document.createElement('div');go.className='gbtn shopgo';go.textContent='جربيها بغرفة الملابس 👗';sc.appendChild(go);
@@ -68,5 +75,6 @@ ROOMS.class3d={name:'الصف 3D',color:'linear-gradient(135deg,#d9f1ff,#c9a4ff)
  icon:'<svg viewBox="0 0 100 100"><path d="M50 8 L92 30 L50 52 L8 30Z" fill="#ff9ec4"/><path d="M8 30 V72 L50 94 V52Z" fill="#c77dff"/><path d="M92 30 V72 L50 94 V52Z" fill="#9b5de5"/><text x="50" y="38" font-size="20" font-weight="900" text-anchor="middle" fill="#fff">3D</text></svg>',
  init:function(){A.sfx.pop();setTimeout(function(){location.href='class3d.html';},200);}};
 GAME.ORDER.push('world3d','class3d');A.go3d=function(){location.href='class3d.html';};
-if(location.hash==='#menu'){setTimeout(function(){try{A.goMenu();}catch(e){}},50);}
+function hashRoute(){var rm=(location.hash||'').match(/^#room=(\w+)/);if(rm&&ROOMS[rm[1]]){setTimeout(function(){try{A.openRoom(rm[1]);}catch(e){}},60);}else if(location.hash==='#menu'){setTimeout(function(){try{A.goMenu();}catch(e){}},50);}}
+hashRoute();addEventListener('hashchange',hashRoute);
 })();

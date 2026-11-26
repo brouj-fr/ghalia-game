@@ -7,6 +7,8 @@ var stage=$('#stage'),scene=$('#scene'),toolbar=$('#toolbar'),carousel=$('#carou
 var scale=1,GY=0;
 var rot=false;
 function fit(){var w=innerWidth,h=innerHeight;rot=h>w*1.05;
+  var ps=rot&&(stage.dataset.screen||'start')==='start';stage.classList.toggle('pstart',ps);
+  if(ps){rot=false;scale=Math.min(w/720,h/1280);stage.style.transform='translate(-50%,-50%) scale('+scale+')';return;}
   if(rot){scale=Math.min(h/W,w/H);stage.style.transform='translate(-50%,-50%) rotate(90deg) scale('+scale+')';}
   else{scale=Math.min(w/W,h/H);stage.style.transform='translate(-50%,-50%) scale('+scale+')';}}
 function c2s(cx,cy){var r=stage.getBoundingClientRect();var dx=(cx-(r.left+r.width/2))/scale,dy=(cy-(r.top+r.height/2))/scale;return rot?{x:W/2+dy,y:H/2-dx}:{x:W/2+dx,y:H/2+dy};}
@@ -186,7 +188,7 @@ function wear(who,id){CH[who].acc[ACC[id].slot]=id;renderAcc(who);var el=R.chars
   var s=SLOTS[who][ACC[id].slot];burst(el._x-el._w/2+el._w*s.x/100,el._y-el._h+el._h*s.y/100,12);sfx.sparkle();}
 
 /* ---------- screens ---------- */
-function show(scr){stage.dataset.screen=scr;}
+function show(scr){stage.dataset.screen=scr;fit();}
 var ROOMS={},ORDER=[];
 window.GAME={ROOMS:ROOMS,ORDER:ORDER,SV:SV,ACC:ACC,CH:CH,api:null};
 var CATS=[];

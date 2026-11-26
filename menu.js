@@ -3,10 +3,10 @@
 'use strict';
 var A=GAME.api,ROOMS=GAME.ROOMS,ORDER=GAME.ORDER;
 var CATS=[
- {id:'feat',name:'المميز ⭐',rooms:['sch1','world3d','shop','garden','balloons','salon','kitchen','memory','makeup','nails']},
+ {id:'feat',name:'المميز ⭐',rooms:['toys','sch1','world3d','shop','garden','balloons','salon','kitchen','memory','makeup','nails']},
  {id:'school',name:'المدرسة 🎒',rooms:['sch1','sch2','sch3','sch4','world3d','class3d']},
- {id:'games',name:'ألعاب 🎮',rooms:['memory','catch','balloons','whack','shop']},
- {id:'home',name:'بيت الأحلام 🏠',rooms:['garden','kitchen','bedroom','bath','wardrobe','dress']},
+ {id:'games',name:'ألعاب 🎮',rooms:['toys','memory','catch','balloons','whack','shop']},
+ {id:'home',name:'بيت الأحلام 🏠',rooms:['toys','garden','kitchen','bedroom','bath','wardrobe','dress']},
  {id:'beauty',name:'الجمال 💄',rooms:['salon','makeup','nails','masks','dress','wardrobe']},
  {id:'all',name:'الكل 💗',rooms:ORDER.concat(['sch1','sch2','sch3','sch4','memory','catch','balloons','whack'])}
 ];

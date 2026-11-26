@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f29a8e">
+<link rel="icon" href="data:,">
+<title>عالم المسبح — غالية</title>
+<link rel="stylesheet" href="fonts/tajawal.css">
+<link rel="stylesheet" href="fonts/v2.css">
+<link rel="stylesheet" href="chrome.css">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#f6b39b;font-family:var(--v2-ui,'Tajawal',system-ui,sans-serif);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh;touch-action:none}
+#fx2d{pointer-events:none;z-index:6}
+#loader{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#ffd3c4,#f08aa6 60%,#7a4fb4);color:#fff;transition:opacity .5s}
+#loader b{font:900 34px/1 var(--v2-ui);text-shadow:0 3px 0 #b44b7c,0 0 24px #fff6}
+#loader i{width:160px;height:8px;border-radius:9px;background:#fff5;overflow:hidden}#loader i s{display:block;height:100%;width:30%;background:#fff;border-radius:9px;animation:ld 1s infinite ease-in-out}
+@keyframes ld{0%{transform:translateX(-120%)}100%{transform:translateX(420%)}}
+.hud{position:fixed;z-index:10;transition:opacity .35s,transform .35s}
+body.riding .hud{opacity:0;pointer-events:none;transform:translateY(12px)}
+#top{top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
+#top>*{pointer-events:auto}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:999px;background:rgba(40,16,58,.42);border:1.5px solid rgba(255,244,234,.55);color:#fff8f0;font:800 15px/1 var(--v2-ui);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-decoration:none;box-shadow:0 6px 18px rgba(90,30,80,.25)}
+.chip.title{font-size:17px;background:linear-gradient(135deg,rgba(255,105,170,.75),rgba(110,190,255,.7))}
+button.chip{cursor:pointer;appearance:none}
+#tools{display:flex;gap:8px;direction:ltr}
+#slides{bottom:max(12px,env(safe-area-inset-bottom));left:0;right:0;display:flex;gap:10px;justify-content:center;padding:0 10px}
+.sl{appearance:none;border:0;cursor:pointer;position:relative;width:min(31vw,170px);height:min(31vw,116px);border-radius:20px;overflow:hidden;padding:0;background:#ffd;box-shadow:0 10px 26px rgba(90,30,80,.35),0 0 0 3px rgba(255,255,255,.85);transition:transform .2s}
+.sl:active{transform:scale(.94)}.sl:hover{transform:translateY(-3px) scale(1.03)}
+.sl .im{position:absolute;inset:0;background-image:url(img/thumbs/pool.jpg);background-repeat:no-repeat}
+.sl::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(40,12,50,.78),rgba(40,12,50,0) 58%)}
+.sl b{position:absolute;z-index:1;bottom:8px;left:6px;right:6px;color:#fff;font:900 clamp(12px,3.4vw,16px)/1.15 var(--v2-ui);text-shadow:0 2px 4px #0008}
+.sl i{position:absolute;z-index:1;top:6px;right:8px;font-style:normal;font-size:clamp(16px,5vw,24px);filter:drop-shadow(0 2px 2px #0006)}
+#hint{bottom:calc(max(12px,env(safe-area-inset-bottom)) + min(31vw,116px) + 14px);left:50%;transform:translateX(-50%);white-space:nowrap;font-size:13px}
+#say{position:fixed;z-index:12;left:50%;top:18%;transform:translate(-50%,-10px) scale(.9);opacity:0;transition:all .3s cubic-bezier(.3,1.6,.5,1);padding:12px 20px;border-radius:22px;background:#fff;color:#7a2c64;font:900 20px/1.2 var(--v2-ui);box-shadow:0 10px 30px rgba(120,40,90,.35);pointer-events:none;white-space:nowrap}
+#say.on{opacity:1;transform:translate(-50%,0) scale(1)}
+#ridehud{position:fixed;z-index:11;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;justify-content:center;opacity:0;transition:opacity .4s;pointer-events:none}
+body.riding #ridehud{opacity:1}
+#ridehud .chip{font-size:13px}
+#ridename{position:fixed;z-index:11;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);opacity:0;transition:opacity .4s;pointer-events:none;direction:ltr}
+body.riding #ridename{opacity:1}
+#flash{position:fixed;inset:0;z-index:20;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
+#pop{position:fixed;z-index:5;pointer-events:none;display:none}
+#pop .clip{position:absolute;left:0;right:0;bottom:0;overflow:hidden}
+#pop img{display:block;width:100%;transform:translateY(105%)}
+#pop.up img{animation:popup 3.4s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes popup{0%{transform:translateY(105%)}14%{transform:translateY(4%) rotate(-2deg)}22%{transform:translateY(9%) rotate(1.5deg)}32%,52%{transform:translateY(6%) rotate(-1deg)}42%,62%{transform:translateY(9%) rotate(1deg)}80%{transform:translateY(8%)}100%{transform:translateY(105%)}}
+#count{direction:rtl}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="fx2d"></canvas>
+<div id="pop"><div class="clip"><img id="popimg" alt=""></div></div>
+<div id="loader"><b>عالم المسبح 💦</b><i><s></s></i></div>
+<div id="top" class="hud">
+  <a class="chip" id="home" href="index.html#menu" aria-label="رجوع للعبة">↩ 🏠</a>
+  <span class="chip title">عالم المسبح 🏊‍♀️</span>
+  <div id="tools"><button class="chip" id="snd" aria-label="الصوت">🔊</button><span class="chip" id="count">💦 0</span></div>
+</div>
+<div id="hint" class="hud chip">اختاري زحليقة، أو اضغطي على الأرض عشان تمشي غالية</div>
+<div id="slides" class="hud">
+  <button class="sl" data-slide="spiral"><span class="im"></span><i>🌀</i><b>الزحليقة اللولبية</b></button>
+  <button class="sl" data-slide="drop"><span class="im"></span><i>⚡</i><b>النزلة الكبيرة</b></button>
+  <button class="sl" data-slide="rainbow"><span class="im"></span><i>🌈</i><b>أنبوب قوس قزح</b></button>
+</div>
+<div id="ridename" class="chip title"></div>
+<div id="ridehud"><span class="chip">👆 اضغطي مطوّل = أسرع · ↔ اسحبي = ميلي</span></div>
+<div id="say"></div>
+<div id="flash"></div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/fx/CopyShader.js"></script><script src="lib/fx/LuminosityHighPassShader.js"></script>
+<script src="lib/fx/EffectComposer.js"></script><script src="lib/fx/RenderPass.js"></script>
+<script src="lib/fx/ShaderPass.js"></script><script src="lib/fx/MaskPass.js"></script><script src="lib/fx/UnrealBloomPass.js"></script>
+<script src="scene-kit.js"></script>
+<script src="pool-art.js"></script><script src="pool-scene.js"></script>
+<script src="ghalia-sprite-atlas.js"></script><script src="ghalia-sprite.js"></script>
+<script src="pool-audio.js"></script><script src="pool-ride.js"></script>
+<script src="pool-world.js"></script>
+</body>
+</html>

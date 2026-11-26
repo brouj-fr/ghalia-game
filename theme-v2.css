@@ -114,3 +114,29 @@ html,body{background:radial-gradient(ellipse at 50% 40%,#2f1b4f,#160a28 70%)!imp
 #stage.pstart .startBox h1 span.t2{font-size:84px}
 #stage.pstart .startChars{left:50%;margin-left:-270px;bottom:40px;width:540px;height:640px}
 #stage.pstart #start.v2hero .v2hero-bg,#stage.pstart #start{background-position:62% center}
+
+/* ---- v2 illustrated plates (2D rooms) ---- */
+.v2p .v2bgimg{will-change:transform;transform:scale(1.04)}
+.v2p .v2tw{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,246,210,.95) 0,rgba(255,200,140,.55) 28%,rgba(255,160,120,0) 70%);animation:v2tw 2.4s ease-in-out infinite}
+.v2p .v2bl{background:radial-gradient(circle,rgba(255,250,230,.9) 0,rgba(255,215,160,.5) 30%,rgba(255,180,120,0) 70%);animation-duration:3.2s}
+.v2p .v2neon{position:absolute;width:190px;height:170px;margin:-85px 0 0 -95px;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(ellipse,rgba(255,90,190,.55) 0,rgba(255,90,190,.18) 40%,transparent 70%);animation:v2breathe 2.6s ease-in-out infinite}
+.v2p .v2beam2{position:absolute;pointer-events:none;mix-blend-mode:screen;opacity:.5;background:linear-gradient(160deg,rgba(255,214,150,.6),rgba(255,170,110,0) 72%);clip-path:polygon(8% 0,40% 0,100% 100%,42% 100%);animation:v2beam 6s ease-in-out infinite}
+.v2p .v2mote{position:absolute;width:7px;height:7px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#fff6d0 0,rgba(255,214,150,.6) 45%,transparent 70%);animation:v2mote 9s linear infinite;opacity:0}
+.v2p .v2sunset{position:absolute;width:900px;height:420px;margin:-210px 0 0 -450px;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(ellipse,rgba(255,200,140,.35),transparent 65%);animation:v2breathe 7s ease-in-out infinite}
+.v2p .v2moon{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,250,210,.7),rgba(200,180,255,.2) 40%,transparent 70%);animation:v2breathe 5s ease-in-out infinite}
+.v2p .v2lampglow{position:absolute;width:260px;height:260px;margin:-130px 0 0 -130px;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,220,150,.6),rgba(255,170,100,.15) 45%,transparent 70%);animation:v2breathe 4s ease-in-out infinite}
+.v2p .v2leaves{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 10% 0%,rgba(255,220,160,.25),transparent 70%)}
+#lamp.off ~ .x,#night.on ~ * .v2lampglow{opacity:0}
+.v2duvet{position:absolute;inset:0;background:url(img/bg-bedroom2d.jpg) -398px -540px/1280px 720px no-repeat;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 18%);mask-image:linear-gradient(180deg,transparent 0,#000 18%)}
+.v2lamphit{position:absolute;inset:0;cursor:pointer;border-radius:40%}
+.v2bust{filter:drop-shadow(0 18px 30px rgba(60,10,40,.45)) drop-shadow(0 0 22px rgba(255,170,200,.35));animation:v2breath 4.5s ease-in-out infinite;transform-origin:50% 100%}
+.v2hand{filter:drop-shadow(0 22px 26px rgba(70,20,40,.4));animation:v2handf 5s ease-in-out infinite}
+.nail.v2pol{animation:v2pol .45s cubic-bezier(.2,.9,.3,1.4)}
+.v2-garden ~ .bed .soil{filter:saturate(.85) brightness(.95)}
+@keyframes v2tw{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes v2breathe{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes v2mote{0%{opacity:0;transform:translate(0,0)}15%{opacity:.9}85%{opacity:.7}100%{opacity:0;transform:translate(30px,-140px)}}
+@keyframes v2breath{0%,100%{transform:scale(1)}50%{transform:scale(1.012) translateY(-2px)}}
+@keyframes v2pol{0%{transform-box:fill-box;transform-origin:50% 50%;transform:scale(.4);fill-opacity:0}100%{transform-box:fill-box;transform-origin:50% 50%;transform:scale(1)}}
+@keyframes v2handf{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+#scene:has(.v2-bedroom) .prop.tv,#scene:has(.v2-bedroom) .prop.curt{display:none}

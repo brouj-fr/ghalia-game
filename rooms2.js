@@ -101,12 +101,12 @@ ROOMS.wardrobe={name:'الخزانة',color:'linear-gradient(135deg,#ffe3f1,#ff6
 /* tool bar holds 7 here: slightly smaller tiles */
 
 /* ================= close-up helpers (makeup & masks) ================= */
-var BUST={x:340,y:150,w:434*1.05,h:535*1.05};
-var FACE={eyeL:[36.9,47.1],eyeR:[63.8,48.8],cheekL:[29.3,60.4],cheekR:[71,60.4],mouth:[49.3,66.9],fore:[49.3,31.4]};
-function bustEl(r){var b=el('<img src="img/ghalia_bust.png" alt="" draggable="false" style="width:100%;height:100%">','',BUST.x,BUST.y,BUST.w,BUST.h,10);b.style.pointerEvents='none';
+var BUST={x:382,y:150,w:456,h:562};
+var FACE={eyeL:[43.9,54.3],eyeR:[70.6,54.3],cheekL:[40.2,66.2],cheekR:[74.6,66.2],mouth:[56.6,73.6],fore:[56.6,40.5]};
+function bustEl(r){var b=el('<img src="img/ghalia_bust_v2.png" class="v2bust" alt="" draggable="false" style="width:100%;height:100%">','',BUST.x,BUST.y,BUST.w,BUST.h,10);b.style.pointerEvents='none';
   var L=document.createElement('div');L.style.cssText='position:absolute;inset:0';b.appendChild(L);r.bust=b;r.bl=L;return b;}
 function toBust(p){return {x:(p.x-BUST.x)/BUST.w*100,y:(p.y-BUST.y)/BUST.h*100};}
-function onFace(p){var q=toBust(p);return q.x>18&&q.x<84&&q.y>22&&q.y<82;}
+function onFace(p){var q=toBust(p);return q.x>22&&q.x<92&&q.y>26&&q.y<88;}
 function bpos(px,py){return {x:BUST.x+BUST.w*px/100,y:BUST.y+BUST.h*py/100};}
 function bl(r,html,cx,cy,w,h,cls){var d=document.createElement('div');d.className='lay '+(cls||'');d.style.left=(cx-w/2)+'%';d.style.top=(cy-h/2)+'%';d.style.width=w+'%';d.style.height=h+'%';d.innerHTML=html;r.bl.appendChild(d);popIn(d);return d;}
 function nearest(q,keys){var best=null,bd=1e9;keys.forEach(function(k){var d=Math.hypot(q.x-FACE[k][0],q.y-FACE[k][1]);if(d<bd){bd=d;best=k;}});return best;}
@@ -173,16 +173,17 @@ ROOMS.masks={name:'الماسكات',color:'linear-gradient(135deg,#d6f7e8,#5fd3
 };
 
 /* ================= NAILS ================= */
-var NAILS=[{x:258,y:376,w:46,h:58,r:-28},{x:336,y:232,w:50,h:62,r:-8},{x:420,y:200,w:52,h:64,r:0},{x:504,y:224,w:50,h:62,r:8},{x:576,y:290,w:44,h:54,r:18}]; /* in hand svg coords (viewBox 0 0 760 620) */
+var NAILS=[{x:212,y:352,w:30,h:40,r:-38},{x:323,y:148,w:36,h:38,r:-6},{x:427,y:111,w:38,h:40,r:0},{x:530,y:141,w:37,h:38,r:4},{x:632,y:231,w:31,h:34,r:14}]; /* in hand svg coords (viewBox 0 0 760 620) */
 var HAND={x:250,y:90,s:.92};
-function handSVG(){var sk='#e9b48a',sd='#d79c72';
+function handSVG(){return '<img src="img/hand_v2.png" class="v2hand" alt="" draggable="false" style="position:absolute;inset:0;width:100%;height:100%">';}
+function handSVG_old(){var sk='#e9b48a',sd='#d79c72';
   return '<svg viewBox="0 0 760 620"><g fill="'+sk+'" stroke="'+sd+'" stroke-width="5">'+
   '<path d="M200 600 Q190 470 250 420 L300 360 Q330 330 350 380 L340 460 Z"/>'+
   '<rect x="300" y="210" width="76" height="300" rx="38"/><rect x="384" y="176" width="80" height="330" rx="40"/><rect x="468" y="200" width="78" height="310" rx="39"/><rect x="548" y="266" width="68" height="250" rx="34" transform="rotate(14 582 390)"/>'+
   '<path d="M236 330 Q250 300 286 340 L330 420 Q340 450 300 470 Q270 470 250 430Z" transform="rotate(-6 280 400)"/>'+
   '<path d="M240 470 Q250 380 330 400 L600 410 Q640 430 620 540 Q600 610 470 620 L230 620Z"/></g>'+
   '<path d="M330 470 q120 30 250 0" stroke="'+sd+'" stroke-width="4" fill="none" opacity=".5"/></svg>';}
-function nailLayer(){var s='<svg viewBox="0 0 760 620" style="position:absolute;inset:0">';NAILS.forEach(function(n,i){s+='<g transform="rotate('+n.r+' '+n.x+' '+n.y+')"><rect class="nail" data-i="'+i+'" x="'+(n.x-n.w/2)+'" y="'+(n.y-n.h/2)+'" width="'+n.w+'" height="'+n.h+'" rx="'+(n.w/2)+'" fill="#ffe8de" stroke="#e8b8a0" stroke-width="3"/><rect class="shn" x="'+(n.x-n.w/4)+'" y="'+(n.y-n.h/2+8)+'" width="'+(n.w/6)+'" height="'+(n.h/2.4)+'" rx="4" fill="#fff" opacity="0"/><g class="stk" data-i="'+i+'"></g></g>';});return s+'</svg>';}
+function nailLayer(){var s='<svg viewBox="0 0 760 620" style="position:absolute;inset:0">';NAILS.forEach(function(n,i){s+='<g transform="rotate('+n.r+' '+n.x+' '+n.y+')"><rect class="nail" data-i="'+i+'" x="'+(n.x-n.w/2)+'" y="'+(n.y-n.h/2)+'" width="'+n.w+'" height="'+n.h+'" rx="'+(n.w/2)+'" fill="#ffffff" fill-opacity="0" stroke="none" stroke-width="2"/><rect class="shn" x="'+(n.x-n.w/4)+'" y="'+(n.y-n.h/2+8)+'" width="'+(n.w/6)+'" height="'+(n.h/2.4)+'" rx="4" fill="#fff" opacity="0"/><g class="stk" data-i="'+i+'"></g></g>';});return s+'</svg>';}
 var POL={polPink:'#ff4f9a',polPurple:'#a66bff',polMint:'#3fd3a0',polGold:'#ffc21a'};
 function bottle(c){return '<svg viewBox="0 0 100 100"><rect x="38" y="4" width="24" height="36" rx="6" fill="#333"/><path d="M26 40 h48 q8 0 8 10 v34 q0 10 -10 10 h-44 q-10 0 -10 -10 v-34 q0 -10 8 -10z" fill="'+c+'"/><rect x="32" y="48" width="10" height="34" rx="5" fill="#fff" opacity=".5"/></svg>';}
 TOOLS.polPink={name:'وردي',svg:bottle(POL.polPink),tip:'اضغطي اللون وبعدين اضغطي الظفر 💅'};TOOLS.polPurple={name:'بنفسجي',svg:bottle(POL.polPurple),tip:'بنفسجي 💜'};TOOLS.polMint={name:'نعناعي',svg:bottle(POL.polMint),tip:'أخضر نعناعي 💚'};TOOLS.polGold={name:'ذهبي',svg:bottle(POL.polGold),tip:'ذهبي يلمع ✨'};
@@ -191,11 +192,11 @@ TOOLS.nstk={name:'ستيكر',svg:SV.nstk,tip:'ستيكر قلب على الظف
 var NBG='<svg class="bg" viewBox="0 0 1280 720"><defs><radialGradient id="nbg" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#fff5fa"/><stop offset="1" stop-color="#ffb3d1"/></radialGradient></defs><rect width="1280" height="720" fill="url(#nbg)"/><rect y="560" width="1280" height="160" fill="#ff9cc8"/><rect y="548" width="1280" height="18" fill="#ffd0e5"/>'+
  '<ellipse cx="600" cy="600" rx="360" ry="60" fill="#fff" opacity=".6"/><g transform="translate(60 140)"><rect width="160" height="14" rx="6" fill="#d48aa8"/>'+[0,1,2,3].map(function(i){return '<g transform="translate('+(10+i*38)+' -56)">'+bottle(['#ff4f9a','#a66bff','#3fd3a0','#ffc21a'][i]).replace('<svg viewBox="0 0 100 100">','<svg viewBox="0 0 100 100" width="36" height="56" x="0" y="0">')+'</g>';}).join('')+'</g>'+
  '<g fill="#fff" opacity=".7"><path d="M1000 120 l6 14 14 6 -14 6 -6 14 -6 -14 -14 -6 14 -6z"/><path d="M120 420 l5 11 11 5 -11 5 -5 11 -5 -11 -11 -5 11 -5z"/></g></svg>';
-function paintNail(r,i,col){var n=r.hand.querySelector('.nail[data-i="'+i+'"]');n.setAttribute('fill',col);n.setAttribute('stroke','#0002');r.painted[i]=col;r.dried=false;var s=r.hand.querySelectorAll('.shn');s[i].setAttribute('opacity','.35');
+function paintNail(r,i,col){var n=r.hand.querySelector('.nail[data-i="'+i+'"]');n.setAttribute('fill',col);n.setAttribute('fill-opacity','.93');n.setAttribute('stroke','#0003');n.classList.remove('v2pol');void n.getBoundingClientRect();n.classList.add('v2pol');r.painted[i]=col;r.dried=false;var s=r.hand.querySelectorAll('.shn');s[i].setAttribute('opacity','.35');
   var c=nailPos(i);burst(c.x,c.y,6,[col,'#ffffff']);sfx.pop();}
 function nailPos(i){var n=NAILS[i];return {x:HAND.x+n.x*HAND.s,y:HAND.y+n.y*HAND.s};}
 function nailAt(p){var best=-1,bd=70;for(var i=0;i<5;i++){var c=nailPos(i);var d=Math.hypot(p.x-c.x,p.y-c.y);if(d<bd){bd=d;best=i;}}return best;}
-function onHand(p){return inRect(p,HAND.x+180*HAND.s,HAND.y+160*HAND.s,HAND.x+660*HAND.s,HAND.y+620*HAND.s);}
+function onHand(p){return inRect(p,HAND.x+190*HAND.s,HAND.y+90*HAND.s,HAND.x+660*HAND.s,HAND.y+620*HAND.s);}
 ROOMS.nails={name:'الأظافر',color:'linear-gradient(135deg,#ffe0ef,#e0457f)',charH:280,
  icon:'<svg viewBox="0 0 100 100"><g fill="#e9b48a"><rect x="22" y="30" width="14" height="50" rx="7"/><rect x="38" y="20" width="14" height="60" rx="7"/><rect x="54" y="24" width="14" height="56" rx="7"/><rect x="70" y="34" width="12" height="46" rx="6"/><rect x="20" y="60" width="64" height="34" rx="14"/></g><g fill="#ff4f9a"><rect x="24" y="32" width="10" height="12" rx="5"/><rect x="40" y="22" width="10" height="12" rx="5"/><rect x="56" y="26" width="10" height="12" rx="5" fill="#a66bff"/><rect x="71" y="36" width="9" height="11" rx="4.5" fill="#ffc21a"/></g></svg>',
  bg:NBG,tools:['polPink','polPurple','polMint','polGold','nstk','ndry'],spawn:{ghalia:[1060,700],khala:[150,712]},

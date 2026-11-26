@@ -129,3 +129,6 @@ var t0=performance.now();
   var im=p.querySelector('.v2par');if(im)im.style.transform='translate3d('+(-cx*18).toFixed(2)+'px,'+(-cy*10).toFixed(2)+'px,0) scale(1.04)';
   var fl=p.querySelectorAll('.v2tw,.v2neon,.v2beam2,.v2moon,.v2lampglow,.v2sunset');for(var i=0;i<fl.length;i++)fl[i].style.translate=(-cx*18).toFixed(2)+'px '+(-cy*10).toFixed(2)+'px';})(t0);
 })();
+
+/* wardrobe v3 (45 outfits Ghalia really wears): manifest + room, loaded in order right after this file */
+if(document.readyState==='loading')document.write('<script src="ghalia-outfits/index.js"><\/script><script src="wardrobe-v3.js"><\/script>');

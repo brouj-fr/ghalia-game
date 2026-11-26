@@ -223,7 +223,7 @@
         if (mode === 'seek') {                      // Ghalia sneaks off; the player helps Khala find her
           chosen = spots[Math.floor(Math.random() * spots.length)];
           bubble('gone', 'g', 1800); giggle(1.5, 4); burst('g', 16); await wait(500);
-          g.visible = false; gp.x = chosen.spot.x; gp.z = chosen.spot.z; world.clampToWalkable(gp);
+          g.visible = false; gp.x = Math.max(-.7, Math.min(.7, chosen.spot.x)); gp.z = chosen.spot.z; world.clampToWalkable(gp);
         } else {
           bubble('pickSpot', 'k', 3200); showSpots(spots, function (s) { if (chosen) return; chosen = s; clearSpots(); rig.expr('happy', 3); walkG(s.spot.x, s.spot.z, 6000).then(function () { hideAt(); }, function () {}); });
         }
@@ -248,7 +248,7 @@
             if (misses >= 2) { chosen.hot = true; giggle(1.5, 5); word(spotWorld(chosen), 'hehe!'); particles(spotWorld(chosen), 4, ['🤭', '✨']); }
             await wait(1100);
           }
-          hidePos = { x: chosen.spot.x, z: chosen.spot.z }; await found();
+          hidePos = { x: gp.x, z: gp.z }; await found();
         } else {
           var wrong = spots.filter(function (s) { return s !== chosen; }).sort(function () { return Math.random() - .5; }).slice(0, 2);
           for (var w = 0; w < wrong.length; w++) {
@@ -264,7 +264,7 @@
     var _bubble = bubble; bubble = function (key, who, ms) { return Array.isArray(key) ? (LINES.__t = key, _bubble('__t', who, ms)) : _bubble(key, who, ms); };
     function waitUntil(f, ms) { var my = token; return new Promise(function (res) { var t0 = Date.now(); (function loop() { if (my !== token || f() || Date.now() - t0 > ms) return res(); setTimeout(loop, 100); })(); }); }
     function kick(s) { try { world.stage.kick(SPOTS[s.name][2]); } catch (e) {} burst(spotWorld(s), 10); }
-    function hideAt() { ph('hidden'); hidePos = { x: gp.x, z: gp.z }; g.visible = false; H.group.visible = true; hideAnim = { t: 0, peek: 0, jump: 0, laugh: 0 }; hc.set('g_hide'); giggle(1.6, 3); word(headWorld(gp.x, gp.z, .7), 'shh…'); }
+    function hideAt() { ph('hidden'); gp.x = Math.max(-.7, Math.min(.7, gp.x)); hidePos = { x: gp.x, z: gp.z }; g.visible = false; H.group.visible = true; hideAnim = { t: 0, peek: 0, jump: 0, laugh: 0 }; hc.set('g_hide'); giggle(1.6, 3); word(headWorld(gp.x, gp.z, .7), 'shh…'); }
     async function found() {
       K.setPose('k_happy'); K.bounce(); var l = line('found', 'k');
       if (!hidePos) hidePos = { x: gp.x, z: gp.z }; H.group.visible = true; g.visible = false; hideAnim = hideAnim || { t: 0 }; hideAnim.jump = 1; hc.set('g_found'); ph('found');
@@ -291,7 +291,7 @@
     function clearSpots() { spotEls.forEach(function (o) { o.el.remove(); }); spotEls = []; }
     async function play(kind, mode) {
       if (busy || !api.active || !api.ready) return false;
-      busy = true; var my = ++token; ph(kind + ':start'); showBar(false); cinema(true); ac();
+      bubbles.forEach(function (b) { b.el.remove(); }); bubbles = []; busy = true; var my = ++token; ph(kind + ':start'); showBar(false); cinema(true); ac();
       try { await FLOW[kind](my, mode); }
       catch (e) { if (e !== 'abort') console.warn('[khala] moment', e); }
       finally { if (my === token) cleanup(); }

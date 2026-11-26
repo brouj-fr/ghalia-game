@@ -78,3 +78,6 @@
     }
   };
 })();
+
+/* wardrobe v3: the 3D closet modal shows the illustrated wardrobe (only pages that have #dress-grid use it) */
+if(typeof document!=='undefined'&&document.readyState==='loading'&&document.getElementById('dress-grid'))document.write('<script src="ghalia-outfits/index.js"><\/script><script src="wardrobe-3d.js"><\/script>');

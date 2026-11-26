@@ -38,6 +38,42 @@
   function bell(t, a, b) { return smooth(0, a, t) * (1 - smooth(b, 1, t)); }
   function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 
+  /* ---------- outfits: per-outfit atlases in ghalia-outfits/<id>.js (lazy, data-URI so file:// works) ---------- */
+  var G = typeof self !== 'undefined' ? self : this;
+  var LS_KEY = 'ghalia.outfit';
+  var BASE_DIR = (function () {
+    try { var cs = document.currentScript && document.currentScript.src; if (cs) return cs.replace(/[^\/]*$/, ''); } catch (e) {}
+    return '';
+  })();
+  // default-atlas frame -> outfit-atlas frame (outfit sheets have 6 poses)
+  var OUTFIT_MAP = {
+    front_idle: 'front_idle', front_walk_0: 'front_walk_a', front_walk_1: 'front_idle', front_walk_2: 'front_walk_b', front_walk_3: 'front_idle',
+    side_walk_0: 'side_walk', side_walk_1: 'side_walk', side_walk_2: 'side_walk', side_walk_3: 'side_walk',
+    back_idle: 'back_idle', back_walk_0: 'back_idle', back_walk_1: 'back_idle', back_walk_2: 'back_idle',
+    q34_idle: 'front_idle', wave: 'cheer', cheer: 'cheer', jump_crouch: 'front_idle', jump_air: 'cheer'
+  };
+  var loading = {}, live = [], texCache = {};
+  function outfitData(id) { return G.GHALIA_OUTFIT_DATA && G.GHALIA_OUTFIT_DATA[id]; }
+  function loadOutfit(id, cb) {
+    if (!id) { cb(null); return; }
+    var d = outfitData(id); if (d) { cb(d); return; }
+    if (loading[id]) { loading[id].push(cb); return; }
+    loading[id] = [cb];
+    var done = function () { var l = loading[id] || []; delete loading[id]; var dd = outfitData(id); l.forEach(function (f) { f(dd || null); }); };
+    if (typeof document === 'undefined') { done(); return; }
+    var sc = document.createElement('script'); sc.async = true;
+    sc.src = BASE_DIR + 'ghalia-outfits/' + encodeURIComponent(id) + '.js';
+    sc.onload = done; sc.onerror = function () { console.warn('[ghalia] outfit not found', id); done(); };
+    document.head.appendChild(sc);
+  }
+  function storedOutfit() { try { var v = localStorage.getItem(LS_KEY); return v && v !== 'uniform' ? v : null; } catch (e) { return null; } }
+  function storeOutfit(id) { try { if (id) localStorage.setItem(LS_KEY, id); else localStorage.removeItem(LS_KEY); } catch (e) {} }
+  function setOutfitAll(id, o) {
+    id = id && id !== 'uniform' ? id : null; storeOutfit(id);
+    live.forEach(function (g) { g.setOutfit(id, o); });
+    try { G.dispatchEvent && G.dispatchEvent(new CustomEvent('ghalia-outfit', { detail: { id: id } })); } catch (e) {}
+  }
+
   function createGhalia(THREE, opts) {
     opts = opts || {};
     var A = opts.atlas || (typeof self !== 'undefined' && self.GHALIA_ATLAS);
@@ -62,11 +98,11 @@
     // ---- material with bend / braid warp ----
     function makeMat() {
       var m = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, depthWrite: true, color: opts.tint != null ? opts.tint : 0xffffff });
-      m.userData.u = { uBend: { value: 0 }, uBraid: { value: new THREE.Vector4(0.78, 0.18, 0.26, 0) }, uFlip: { value: 1 } };
+      m.userData.u = { uBend: { value: 0 }, uBraid: { value: new THREE.Vector4(0.78, 0.18, 0.26, 0) }, uFlip: { value: 1 }, uCut: { value: 9 } };
       m.onBeforeCompile = function (sh) {
         Object.assign(sh.uniforms, m.userData.u);
-        sh.vertexShader = 'uniform float uBend; uniform vec4 uBraid; uniform float uFlip;\n' + sh.vertexShader.replace('#include <begin_vertex>',
-          '#include <begin_vertex>\n' +
+        sh.vertexShader = 'uniform float uBend; uniform vec4 uBraid; uniform float uFlip; varying float vQy;\n' + sh.vertexShader.replace('#include <begin_vertex>',
+          '#include <begin_vertex>\n' + 'vQy = 0.5 - position.y;\n' +
           'float hgt = transformed.y + 0.5;\n' +                        // 0 at feet .. 1 at top of card
           'vec2 q = vec2(transformed.x + 0.5, 0.5 - transformed.y);\n' +  // frame uv (u right, v down)
           'float below = clamp((q.y - uBraid.y) / uBraid.z, 0.0, 1.0);\n' +
@@ -74,6 +110,8 @@
           'float wy = smoothstep(-0.02, 0.05, q.y - uBraid.y) * (1.0 - smoothstep(uBraid.y + uBraid.z, uBraid.y + uBraid.z + 0.08, q.y));\n' +
           'transformed.x += uBraid.w * wx * wy * below * below;\n' +
           'transformed.x += uBend * hgt * hgt;\n');
+        sh.fragmentShader = 'uniform float uCut; varying float vQy;\n' + sh.fragmentShader.replace('#include <alphamap_fragment>',
+          '#include <alphamap_fragment>\n diffuseColor.a *= 1.0 - smoothstep(uCut - 0.05, uCut, vQy);\n');
       };
       m.customProgramCacheKey = function () { return 'ghaliaSprite'; };
       disposables.push(m);
@@ -85,8 +123,9 @@
       mesh.userData.base = g.attributes.uv.array.slice();
       return mesh;
     }
-    function setRect(mesh, r) { // map card UVs to an atlas rect
-      var uv = mesh.geometry.attributes.uv, base = mesh.userData.base, W = A.size[0], H = A.size[1];
+    function setRect(mesh, r, size) { // map card UVs to an atlas rect
+      size = size || A.size;
+      var uv = mesh.geometry.attributes.uv, base = mesh.userData.base, W = size[0], H = size[1];
       for (var i = 0; i < uv.count; i++) {
         var u = base[i * 2], v = base[i * 2 + 1];
         uv.array[i * 2] = (r.x + u * r.w) / W;
@@ -138,21 +177,50 @@
       base: 'neutral', baseUntil: 0, temp: null, tempUntil: 0, shownHead: 'neutral', headFade: 1,
       blinkT: 2.5, blinkAge: 99, blinkDur: 0.14, reaction: null, rt: 0, glanceT: 3, glance: 0,
       lookTarget: null, prevPos: null, prevYaw: null, vel: new THREE.Vector3(), prevVel: new THREE.Vector3(), acc: new THREE.Vector3(),
-      braid: 0, braidV: 0, bend: 0, yawn: 0, yawnT: 6
+      braid: 0, braidV: 0, bend: 0, yawn: 0, yawnT: 6, outfit: null, outfitId: null, wantOutfit: null
     };
+    // chin line inside each (cropped) head overlay, as a fraction of its height: below it the outfit's own collar shows
+    var HEAD_CUT = (function () { var r = {}, cellH = 360 * 0.55, chin = 0.635 * cellH; Object.keys(A.heads).forEach(function (k) { var h = A.heads[k]; r[k] = Math.max(0.5, Math.min(1, (chin - h.oy) / h.h)); }); return r; })();
+    function setOutfit(id, o) {
+      o = o || {}; id = id && id !== 'uniform' ? id : null; st.wantOutfit = id;
+      if (o.persist) storeOutfit(id);
+      var apply = function (d) {
+        if (st.wantOutfit !== id) return;                     // a newer request won
+        if (!d) { st.outfit = null; st.outfitId = null; body.material.map = tex; if (o.onReady) o.onReady(api, null); return; }
+        var t = texCache[id];
+        var fin = function () {
+          if (st.wantOutfit !== id) return;
+          st.outfit = { meta: d, tex: t }; st.outfitId = id; body.material.map = t;
+          if (o.twirl !== false && o.twirl) react('spin');
+          if (o.onReady) o.onReady(api, id); if (opts.onOutfit) opts.onOutfit(api, id);
+        };
+        if (!t) {
+          var im = new Image(); t = new THREE.Texture(im); texCache[id] = t;
+          if (THREE.sRGBEncoding !== undefined && opts.srgb !== false) t.encoding = THREE.sRGBEncoding;
+          t.anisotropy = 4; t.userData = { loaded: false, wait: [] };
+          im.onload = function () { t.needsUpdate = true; t.userData.loaded = true; var w = t.userData.wait; t.userData.wait = []; w.forEach(function (f) { f(); }); };
+          im.src = d.src;
+        }
+        if (t.userData.loaded) fin(); else t.userData.wait.push(fin);
+      };
+      if (!id) apply(null); else loadOutfit(id, apply);
+    }
 
-    function frameInfo(name) { return A.frames[name]; }
+    function ofName(name) { return st.outfit ? (OUTFIT_MAP[name] || 'front_idle') : name; }
+    function frameInfo(name) { return st.outfit ? st.outfit.meta.frames[ofName(name)] : A.frames[name]; }
+    function headPlaceFor(name) { return st.outfit ? (st.outfit.meta.headPlace || {})[ofName(name)] : A.headPlace[name]; }
     function placeBody(name, flip) {
-      var f = frameInfo(name); setRect(body, f);
+      var f = frameInfo(name); setRect(body, f, st.outfit ? st.outfit.meta.size : A.size);
       var w = f.w / PPU, h = f.h / PPU;
       body.scale.set(w * (flip ? -1 : 1), h, 1);
       var cx = (f.w / 2 - f.ax) / PPU; body.position.set(flip ? -cx : cx, (f.ay - f.h / 2) / PPU, 0);
       return f;
     }
     function placeHead(mesh, frameName, headName, flip, dy) {
-      var hp = A.headPlace[frameName], hd = A.heads[headName], f = A.frames[frameName];
+      var hp = headPlaceFor(frameName), hd = A.heads[headName], f = frameInfo(frameName);
       if (!hp || !hd) { mesh.visible = false; return; }
       setRect(mesh, hd);
+      mesh.material.userData.u.uCut.value = st.outfit ? (HEAD_CUT[headName] || 0.8) : 9;
       var s = hp.s, left = hp.x + hd.ox * s, top = hp.y + hd.oy * s, w = hd.w * s, h = hd.h * s;
       var cx = (left + w / 2 - f.ax) / PPU, cy = (f.ay - (top + h / 2)) / PPU;
       mesh.scale.set(w / PPU * (flip ? -1 : 1), h / PPU, 1);
@@ -278,7 +346,7 @@
           family = 'jump'; flip = false;
           if (u < 0.22) { frame = 'jump_crouch'; var a = Math.sin(Math.PI * u / 0.22); syk *= 1 - 0.05 * a; sxk *= 1 + 0.03 * a; }
           else if (u < 0.75) {
-            frame = 'jump_air'; var air = (u - 0.22) / 0.53; liftComp = A.frames.jump_air.ay - A.frames.jump_air.h; // art is already lifted
+            frame = 'jump_air'; var air = (u - 0.22) / 0.53; liftComp = frameInfo('jump_air').ay - frameInfo('jump_air').h; // art is already lifted
             y += 4 * air * (1 - air) * 0.22; var str = 1 - smooth(0, 0.5, air); syk *= 1 + 0.1 * str; sxk *= 1 - 0.05 * str;
           } else if (u < 0.9) { frame = 'jump_crouch'; var l = Math.sin(Math.PI * (u - 0.75) / 0.15); syk *= 1 - 0.08 * l; sxk *= 1 + 0.05 * l; }
           else { frame = 'front_idle'; syk *= 1 + 0.03 * Math.sin(Math.PI * (u - 0.9) / 0.1); }
@@ -310,7 +378,7 @@
       var bp = BRAID[family] || BRAID.front; bmU.uBraid.value.set(bp[0], bp[1], bp[2], clamp(st.braid, -0.08, 0.08) / Math.max(0.2, Math.abs(body.scale.x)));
       shadow.scale.setScalar(clamp(1 - y * 0.9, 0.45, 1.1)); shadow.material.opacity = clamp(1 - y * 1.2, 0.35, 1);
       // head overlay (front art only), cross-fade between expressions
-      var hasHead = !!A.headPlace[frame];
+      var hasHead = !!headPlaceFor(frame);
       if (hasHead) {
         if (headName !== st.shownHead) {
           if (headName === 'blink' || st.shownHead === 'blink') st.headFade = 1; else st.headFade = 0;
@@ -331,11 +399,12 @@
     }
 
     function setColors() { /* painted art: colours are baked. Use opts.tint for a global multiply. */ }
-    function dispose() { disposables.forEach(function (d) { d.dispose && d.dispose(); }); if (group.parent) group.parent.remove(group); }
+    function dispose() { var i = live.indexOf(api); if (i >= 0) live.splice(i, 1); disposables.forEach(function (d) { d.dispose && d.dispose(); }); if (group.parent) group.parent.remove(group); }
 
     var api = {
       group: group, rig: rig, height: HEIGHT, attach: attach, bones: { body: body, head: headA },
-      update: update, setExpression: setExpression, react: react, lookAt: lookAt, setColors: setColors, dispose: dispose,
+      update: update, setExpression: setExpression, react: react, lookAt: lookAt, setColors: setColors, dispose: dispose, setOutfit: setOutfit,
+      get outfit() { return st.outfitId; },
       get expression() { return st.temp || (st.base === 'neutral' && st.idle > sleepAfter ? 'sleepy' : st.base); },
       get isReacting() { return !!st.reaction; },
       get ready() { return ready; },
@@ -345,7 +414,14 @@
     group.userData.ghalia = api;
     // initial frame so it renders correctly before the first update
     placeBody('front_idle', false); placeHead(headA, 'front_idle', 'neutral', false, 0); headB.visible = false;
+    live.push(api);
+    var startOutfit = opts.outfit === false ? null : (opts.outfit !== undefined ? opts.outfit : storedOutfit());
+    if (startOutfit) setOutfit(startOutfit);
     return api;
   }
-  return { createGhalia: createGhalia, EXPRESSIONS: EXPRESSIONS, REACTIONS: Object.keys(REACTIONS), version: '2.0.0-sprite' };
+  return {
+    createGhalia: createGhalia, EXPRESSIONS: EXPRESSIONS, REACTIONS: Object.keys(REACTIONS), version: '2.1.0-sprite-outfits',
+    // wardrobe: GhaliaSprite.setOutfit('pj-stars') dresses every live Ghalia and remembers it (localStorage 'ghalia.outfit'); null/'uniform' = school uniform
+    setOutfit: setOutfitAll, getOutfit: storedOutfit, loadOutfit: loadOutfit, OUTFIT_MAP: OUTFIT_MAP
+  };
 });

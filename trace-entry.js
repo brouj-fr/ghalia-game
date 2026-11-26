@@ -3,7 +3,8 @@
    - class3d.html: adds a ✍️ button in the top HUD. (The board tap is wired in class3d.html's onEvent.) */
 (function(){
 'use strict';
-function go(from){var h='trace.html?from='+from;try{if(window.V2&&V2.wipe){V2.wipe(function(){location.href=h;},'✍️');return;}}catch(e){}location.href=h;}
+var going=false;function go(from){if(going)return;going=true;var h='trace.html?from='+from,done=false;function nav(){if(done)return;done=true;location.href=h;}
+  setTimeout(nav,900);/* never depend on the wipe finishing */try{if(window.V2&&V2.wipe){V2.wipe(nav,'✍️');return;}}catch(e){}nav();}
 window.GHALIA_TRACE={go:go};
 if(window.GAME&&GAME.ROOMS){
   var A=GAME.api,ROOMS=GAME.ROOMS;
@@ -19,6 +20,8 @@ if(window.GAME&&GAME.ROOMS){
   /* class3d / world pages: a ✍️ pill next to the home button */
   addEventListener('DOMContentLoaded',function(){var h=document.getElementById('back-home');if(!h||document.getElementById('trace-btn'))return;
     var b=document.createElement('button');b.id='trace-btn';b.className='sound-btn';b.setAttribute('aria-label','أكتب الحروف');b.textContent='✍️';b.title='أكتب الحروف';b.style.pointerEvents='auto';
-    b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();go('class3d');});h.parentNode.insertBefore(b,h.nextSibling);});
+    var fire=function(e){e.preventDefault();e.stopPropagation();go('class3d');};
+    /* capture on window so the 3D page's own pointer handlers can't swallow the tap */
+    addEventListener('pointerup',function(e){if(e.target&&e.target.closest&&e.target.closest('#trace-btn'))fire(e);},true);b.addEventListener('click',fire);h.parentNode.insertBefore(b,h.nextSibling);});
 }
 })();

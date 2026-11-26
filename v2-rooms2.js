@@ -102,6 +102,23 @@ if(ROOMS.sch4){var s4=ROOMS.sch4.init;ROOMS.sch4.init=function(r){s4.apply(this,
   var ps=sc.querySelectorAll('.prop');for(var j=0;j<ps.length;j++){var p=ps[j];if(p.classList.contains('kid')||p.classList.contains('teacher'))continue;var w2=parseInt(p.style.width),h2=parseInt(p.style.height);
     if((w2===180&&h2===90)||(w2===220&&h2===110)){p.innerHTML='<img src="img/desk.png" alt="" draggable="false" class="v2fig">';p.style.height=Math.round(w2*297/500)+'px';p.style.top=(parseInt(p.style.top)-Math.round(w2*297/500-h2)+10)+'px';}}};}
 
+
+/* ===== Section 4: mini-games + menu ===== */
+function gamePlate(id,img,o){var R0=ROOMS[id];if(!R0)return;R0.bg=plate(id,img,o||{});}
+gamePlate('memory','bg-memory.jpg',{lights:FAIRY_TOP(22,590,1230,12,30),glow:'<i class="v2neon" style="left:1000px;top:112px;width:120px;height:110px"></i>',motes:12});
+gamePlate('catch','bg-catch.jpg',{glow:'<i class="v2sunset" style="left:260px;top:470px;width:520px;height:340px;margin:-170px 0 0 -260px"></i>',motes:22,moteBox:[0,380,1280,340]});
+gamePlate('balloons','bg-balloons.jpg',{motes:8});
+gamePlate('whack','bg-whack.jpg',{beam:'left:0;top:0;width:520px;height:620px',motes:14});
+/* swap flat SVG game props for illustrated sprites as they appear */
+(function(){var sc=A.scene();if(!sc)return;new MutationObserver(function(ms){ms.forEach(function(m){for(var i=0;i<m.addedNodes.length;i++){var n=m.addedNodes[i];if(n.nodeType!==1)continue;
+  if(n.classList.contains('basket')&&!n._v2){n._v2=1;n.innerHTML='<img src="img/basket.png" alt="" draggable="false" class="v2fig" style="height:150%;margin-top:-50%">';}
+  else if(n.classList.contains('hole')&&!n._v2){n._v2=1;var pot=n.querySelector(':scope>svg');if(pot)pot.outerHTML='<img src="img/pot.png" alt="" draggable="false" class="v2pot">';}}});}).observe(sc,{childList:true});})();
+/* menu cards get illustrated thumbnails */
+(function(){var TH=['makeup','nails','garden','wardrobe','bedroom','salon','masks','kitchen','bath','sch1','sch2','sch3','sch4','memory','catch','balloons','whack','shop','dress','world3d','class3d'];
+ function deco(){var cs=document.querySelectorAll('#inner .card');for(var i=0;i<cs.length;i++){var c=cs[i];if(c._v2)continue;var id=c.dataset.room;if(TH.indexOf(id)<0)continue;c._v2=1;c.classList.add('v2card');
+   var bg=c.querySelector('.cbg');if(bg)bg.style.background='url(img/thumbs/'+id+'.jpg) center/cover';}}
+ var cards=document.getElementById('menu');if(cards){deco();new MutationObserver(deco).observe(cards,{childList:true,subtree:true});}})();
+
 /* ---- gentle parallax for every painted plate ---- */
 var tx=0,ty=0,cx=0,cy=0;
 addEventListener('pointermove',function(e){tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5;});

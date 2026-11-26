@@ -153,3 +153,19 @@ html,body{background:radial-gradient(ellipse at 50% 40%,#2f1b4f,#160a28 70%)!imp
 .v2fig{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 10px 12px rgba(60,20,40,.3))}
 .sboard.v2board{left:378px;top:126px;width:528px;height:282px;background:transparent;border:0;box-shadow:none;border-radius:6px}
 .v2p .v2gold{background:radial-gradient(ellipse,rgba(255,210,110,.55),rgba(255,180,90,.15) 45%,transparent 70%)}
+/* section 4: games + menu */
+.v2pot{position:absolute;left:0;bottom:-8px;width:160px;height:141px;z-index:2;object-fit:contain;filter:drop-shadow(0 10px 10px rgba(40,20,0,.35))}
+.hole .pop{z-index:1}
+.basket{filter:drop-shadow(0 12px 14px rgba(30,10,40,.4))}
+.bal svg{filter:drop-shadow(0 8px 10px rgba(40,20,60,.28)) saturate(1.1)}
+.fall svg{filter:drop-shadow(0 0 10px rgba(255,220,120,.9))}
+.mf{border:3px solid rgba(255,236,200,.9);box-shadow:0 14px 26px rgba(40,10,40,.45),inset 0 0 0 2px rgba(255,255,255,.35)}
+.mf.back{background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.45),transparent 40%),linear-gradient(145deg,#ff6fae,#9b5cff 70%,#5b2ea8);font-family:var(--v2-head);text-shadow:0 0 18px rgba(255,220,150,.9)}
+.mf.front{background:linear-gradient(#fffaf3,#ffe6f2)}
+.ovl{background:radial-gradient(ellipse at 50% 40%,rgba(40,14,60,.35),rgba(22,10,40,.7))!important;backdrop-filter:blur(3px)}
+.ovbox{background:linear-gradient(160deg,rgba(60,24,80,.86),rgba(28,12,48,.92))!important;border:1.5px solid rgba(255,190,220,.45)!important;box-shadow:0 30px 60px rgba(8,0,20,.6),0 0 40px rgba(255,71,126,.35),inset 0 1px 0 rgba(255,255,255,.25)!important;border-radius:36px!important}
+.ovbox h3{font-family:var(--v2-head);font-weight:400;color:#fff!important;text-shadow:0 0 18px rgba(255,120,180,.8)}
+.ovbox p{color:rgba(255,236,246,.88)!important}
+.hud{background:linear-gradient(160deg,rgba(60,24,80,.85),rgba(28,12,48,.9))!important;border:1.5px solid rgba(255,190,220,.45);box-shadow:0 12px 26px rgba(8,0,20,.5),0 0 22px rgba(255,71,126,.35)!important}
+.card.v2card .ic{width:96px!important;height:96px!important;top:18px!important;left:auto!important;right:18px!important;transform:none!important;padding:10px;background:rgba(255,255,255,.82);backdrop-filter:blur(4px);border-radius:50%}
+.card.v2card .ic svg,.card.v2card .ic img{width:100%;height:100%}

@@ -264,8 +264,17 @@
     try { g = window.createGhalia(T, { shadows: true, camera: cam }); } catch (e) { console.warn('[ghalia] module failed, using built-in rig', e); return legacy(opts); }
     var root = g.group, A = window.GHALIA_ATLAS, at = g.attach || {};
     var mk = function (geo, hex) { return new T.Mesh(geo, new T.MeshStandardMaterial({ color: hex, roughness: 0.45, metalness: 0.2 })); };
-    var backpack = mk(new T.BoxGeometry(0.3, 0.32, 0.12), 0x1ec8f3); backpack.position.set(0, 0, -0.08); backpack.visible = !!opts.backpack; (at.back || g.bones.spine || root).add(backpack);
-    var crown = mk(new T.ConeGeometry(0.1, 0.14, 6), 0xffd166); crown.position.set(0, 0.02, 0.02); crown.visible = !!opts.crown; (at.head || g.bones.head || root).add(crown);
+    /* illustrated accessory sprites (ghalia-acc-art.js), 3D shapes only as a fallback */
+    var ACC = window.GHALIA_ACC || null;
+    var spr = function (a, wid) { var im = new Image(), tx = new T.Texture(im); im.onload = function () { tx.needsUpdate = true; }; im.src = a.src; if ('encoding' in tx && T.sRGBEncoding) tx.encoding = T.sRGBEncoding;
+      var s = new T.Sprite(new T.SpriteMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: true })); s.scale.set(wid, wid * a.h / a.w, 1); s.center.set(.5, 0); return s; };
+    var backpack, crown;
+    if (ACC && ACC.backpack) { backpack = spr(ACC.backpack, 0.3); backpack.position.set(-0.2, -0.24, 0.05); backpack.material.rotation = 0.12; }
+    else { backpack = mk(new T.BoxGeometry(0.3, 0.32, 0.12), 0x1ec8f3); backpack.position.set(0, 0, -0.08); }
+    backpack.visible = !!opts.backpack; (at.back || g.bones.spine || root).add(backpack);
+    if (ACC && ACC.crown) { crown = spr(ACC.crown, 0.3); crown.position.set(0, -0.07, 0.03); }
+    else { crown = mk(new T.ConeGeometry(0.1, 0.14, 6), 0xffd166); crown.position.set(0, 0.02, 0.02); }
+    crown.visible = !!opts.crown; (at.head || g.bones.head || root).add(crown);
     var dMat = { color: { set: function (c) { try { g.setColors({ dress: c }); } catch (e) {} } } };
     var img = null; if (A && A.src) { img = new Image(); img.src = A.src; }
     var portraits = [], lastP = 0, lastE = '';

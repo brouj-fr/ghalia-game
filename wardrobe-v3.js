@@ -41,6 +41,7 @@ var css=document.createElement('style');css.textContent=
 '.v3tile.on{border-color:#ff4fa3;box-shadow:0 0 0 4px rgba(255,79,163,.35),0 10px 22px rgba(214,51,132,.4);transform:translateY(-3px)}'+
 '.v3tile.on:after{content:"✓";position:absolute;top:8px;right:10px;width:30px;height:30px;border-radius:50%;background:#ff4fa3;color:#fff;font:900 18px/30px sans-serif;text-align:center}'+
 '.v3tile:active{transform:scale(.95)}'+
+'.v3grid.many{grid-auto-rows:134px;gap:8px}.v3grid.many .v3tile img{height:100px;bottom:24px}.v3grid.many .v3tile b{font-size:13px;bottom:4px}'+
 '.v3uni{position:absolute;right:16px;bottom:-62px;height:48px;padding:0 20px;border-radius:24px;display:flex;align-items:center;gap:8px;font:800 17px "Segoe UI",Tahoma,sans-serif;color:#fff;'+
  'background:linear-gradient(135deg,#3b4c8c,#1f2d5c);border:2px solid #fff;box-shadow:0 6px 14px rgba(20,30,80,.35);cursor:pointer}'+
 '.v3ring{position:absolute;z-index:45;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border:4px solid #fff;pointer-events:none;box-shadow:0 0 18px #ff9cd6,inset 0 0 12px #ffd6ef}'+
@@ -94,7 +95,8 @@ var wi=W.init;W.init=function(r){if(wi)wi.apply(this,arguments);
 function build(r){var sc=A.scene(),old=sc.querySelector('.v3wr');if(old)old.remove();
   var p=document.createElement('div');p.className='v3wr';
   var tabs='<div class="v3tabs">'+M.cats.map(function(c){return '<div class="v3tab'+(c.id===curCat?' on':'')+'" data-cat="'+c.id+'">'+c.ar+'</div>';}).join('')+'</div>';
-  var tiles='<div class="v3grid">'+M.list.filter(function(o){return o.cat===curCat;}).map(function(o){
+  var inCat=M.list.filter(function(o){return o.cat===curCat;}).length;
+  var tiles='<div class="v3grid'+(inCat>8?' many':'')+'">'+M.list.filter(function(o){return o.cat===curCat;}).map(function(o){
     return '<div class="v3tile'+(cur()===o.id?' on':'')+'" data-of="'+o.id+'"><img src="img/outfits/thumbs/'+o.id+'.webp" alt="" loading="lazy"><b>'+o.ar+'</b></div>';}).join('')+'</div>';
   p.innerHTML=tabs+tiles+'<div class="v3uni" data-of="">🏫 المريول</div>';sc.appendChild(p);
   /* taps on the panel must not make Ghalia walk behind it (life.js tap-to-walk on the scene) */

@@ -339,6 +339,13 @@
       try { tick(Math.min(.05, dt || 0)); } catch (e) { if (!tick.warned) { tick.warned = 1; console.warn('[khala] tick', e); } }
       return r;
     };
+    /* keep a close-shot card's head (and Khala's bow) below the cinema bar: shrink it from the feet if its top would be cut off */
+    var ftA = new T.Vector3(), ftB = new T.Vector3();
+    function fitTop(Hd, h) {
+      ftA.copy(Hd.group.position).project(camera); ftB.copy(Hd.group.position); ftB.y += h * Hd.group.scale.y * 1.04; ftB.project(camera);
+      var feet = (1 - ftA.y) / 2 * innerHeight, top = (1 - ftB.y) / 2 * innerHeight, safe = innerHeight * .075 + 70;
+      if (top < safe && feet - top > 1) Hd.group.scale.multiplyScalar(Math.max(.55, (feet - safe) / (feet - top)));
+    }
     function tick(dt) {
       if (!SLOW.paused) clock += dt; if (!api.ready) return;
       K.update(dt, world, camera);
@@ -348,6 +355,7 @@
         if (xfade > 0) { xfade = Math.max(0, xfade - dt / .28); m2.opacity(xfade); m2.mesh.rotation.z = m1.mesh.rotation.z; m2.mesh.position.y = m1.mesh.position.y; m2.squash(m1.sx, m1.sy); } else m2.opacity(0);
         var pop = Math.min(1, animT / .32), e = 1 + 2.2 * Math.pow(pop - 1, 3) + 1.2 * Math.pow(pop - 1, 2);  // ease-out-back
         M.group.scale.multiplyScalar(.85 + .15 * e);
+        fitTop(M, Math.max(m1.h * m1.sy, m2.mesh.visible ? m2.h * m2.sy : 0));
       }
       if (H.group.visible && hidePos && hideAnim) {
         hideAnim.t += dt; H.place(world.actorAt(hidePos.x, hidePos.z), camera);

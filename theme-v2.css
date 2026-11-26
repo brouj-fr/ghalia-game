@@ -140,3 +140,13 @@ html,body{background:radial-gradient(ellipse at 50% 40%,#2f1b4f,#160a28 70%)!imp
 @keyframes v2pol{0%{transform-box:fill-box;transform-origin:50% 50%;transform:scale(.4);fill-opacity:0}100%{transform-box:fill-box;transform-origin:50% 50%;transform:scale(1)}}
 @keyframes v2handf{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 #scene:has(.v2-bedroom) .prop.tv,#scene:has(.v2-bedroom) .prop.curt{display:none}
+.v2spr{position:absolute;inset:0;background-repeat:no-repeat;filter:drop-shadow(0 14px 16px rgba(60,20,40,.35))}
+.v2shine{position:absolute;left:18%;top:8%;width:30%;height:30%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 70%);mix-blend-mode:screen;pointer-events:none;animation:v2breathe 3s ease-in-out infinite}
+.v2p .v2water{position:absolute;width:200px;height:140px;margin:-70px 0 0 -100px;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(ellipse,rgba(120,220,255,.4),transparent 70%);animation:v2breathe 3s ease-in-out infinite}
+.v2p .v2steam{position:absolute;width:220px;height:300px;margin:-150px 0 0 -110px;pointer-events:none;background:radial-gradient(ellipse,rgba(255,255,255,.22),transparent 65%);filter:blur(6px);animation:v2steam 8s ease-in-out infinite}
+@keyframes v2steam{0%,100%{transform:translateY(20px) scale(.9);opacity:.3}50%{transform:translateY(-30px) scale(1.1);opacity:.8}}
+.v2oven{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 16px 18px rgba(60,20,40,.35))}
+.v2ovenglow{position:absolute;left:18%;top:36%;width:64%;height:30%;border-radius:20%;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(ellipse,rgba(255,170,80,.0),transparent 70%);transition:background .5s}
+#oven.on .v2ovenglow{background:radial-gradient(ellipse,rgba(255,170,80,.85),rgba(255,120,60,.3) 50%,transparent 75%);animation:v2breathe 1s ease-in-out infinite}
+#oven .pbar{z-index:2}
+.prop.v2ghost>svg,.prop.v2ghost>img{opacity:0}

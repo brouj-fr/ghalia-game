@@ -46,6 +46,42 @@ if(ROOMS.bedroom){ROOMS.bedroom.bg=plate('bedroom','bg-bedroom2d.jpg',{
     setTimeout(function(){var q=A.scene().querySelectorAll('.prop.tv,.prop.curt');for(var k=0;k<q.length;k++)q[k].remove();},60);
     if(r.lamp){r.lamp.innerHTML='<div class="v2lamphit"></div>';r.lamp.style.left='1050px';r.lamp.style.top='300px';r.lamp.style.width='100px';r.lamp.style.height='130px';}
   };}
+
+/* ===== Section 2: beauty & home rooms ===== */
+function spr(src,w,h,y0,y1){/* background-cropped slice of a prop sprite: rows y0..y1 (0..1) */
+  return '<div class="v2spr" style="background-image:url(img/'+src+');background-size:'+w+'px '+h+'px;background-position:0 -'+(h*y0).toFixed(1)+'px"></div>';}
+/* salon: painted salon + illustrated velvet chair (back + seat-front layers so she sits in it) */
+if(ROOMS.salon){ROOMS.salon.bg=plate('salon','bg-salon.jpg',{
+  bulbs:[[640,50,54],[580,60,54],[700,60,54],[545,100,54],[735,100,54],[520,160,54],[760,160,54],[512,222,54],[768,222,54],[520,290,54],[760,290,54],[545,350,54],[735,350,54],[590,385,54],[690,385,54],[640,395,54]],
+  lights:FAIRY_TOP(10,0,470,10,30).concat(FAIRY_TOP(10,850,1280,9,30)),motes:14,
+  glow:'<i class="v2water" style="left:1196px;top:362px"></i>'});
+  var si=ROOMS.salon.init;ROOMS.salon.init=function(r){si.apply(this,arguments);
+    var W=262,H=372,L=429,T=353,f=.56;
+    r.back.style.cssText+=';left:'+L+'px;top:'+T+'px;width:'+W+'px;height:'+H+'px';r.back.innerHTML=spr('salon-chair.png',W,H,0,1)+'<i class="v2shine"></i>';
+    r.front.style.cssText+=';left:'+L+'px;top:'+(T+H*f).toFixed(0)+'px;width:'+W+'px;height:'+(H*(1-f)).toFixed(0)+'px';r.front.innerHTML=spr('salon-chair.png',W,H,f,1);
+    setTimeout(function(){var t=A.scene().querySelector('.prop.tank');if(t){t.style.left='1108px';t.style.top='288px';t.style.width='172px';t.style.height='146px';t.classList.add('v2ghost');}},60);};}
+/* masks: painted spa (close-up bust is shared with makeup) */
+if(ROOMS.masks){ROOMS.masks.bg=plate('masks','bg-spa.jpg',{
+  lights:FAIRY_TOP(10,0,330,7,40).concat(FAIRY_TOP(20,760,1280,9,30)),
+  glow:'<i class="v2sunset" style="left:640px;top:220px;width:520px;height:520px;margin:-260px 0 0 -260px"></i><i class="v2steam" style="left:300px;top:200px"></i><i class="v2steam" style="left:840px;top:260px;animation-delay:-3s"></i>',
+  bulbs:[[104,523,60],[1189,560,60],[1218,568,50],[1170,393,46]],motes:16});}
+/* kitchen: painted kitchen + illustrated oven */
+if(ROOMS.kitchen){ROOMS.kitchen.bg=plate('kitchen','bg-kitchen.jpg',{
+  beam:'left:470px;top:20px;width:520px;height:640px',glow:'<i class="v2sunset" style="left:700px;top:180px;width:520px;height:420px;margin:-210px 0 0 -260px"></i>',motes:16});
+  var ki=ROOMS.kitchen.init;ROOMS.kitchen.init=function(r){ki.apply(this,arguments);var o=r.oven;if(!o)return;
+    var sv=o.querySelector('svg');if(sv)sv.outerHTML='<img class="v2oven" src="img/oven.png" alt="" draggable="false"><i class="v2ovenglow"></i>';
+    o.style.left='292px';o.style.top='258px';o.style.width='236px';o.style.height='352px';};}
+/* bath: painted bathroom + illustrated clawfoot tub (back + front layers, foam on top) */
+if(ROOMS.bath){ROOMS.bath.bg=plate('bath','bg-bath.jpg',{
+  beam:'left:150px;top:40px;width:560px;height:620px',
+  bulbs:[[1146,74,40],[1180,72,40],[1212,92,40],[1238,124,40],[1250,168,40],[1238,214,40],[1212,250,40],[1182,268,40],[1146,262,40],[1124,228,40],[1118,180,40],[1126,120,40]],motes:14,
+  glow:'<i class="v2sunset" style="left:240px;top:150px;width:420px;height:360px;margin:-180px 0 0 -210px"></i>'});
+  var hi=ROOMS.bath.init;ROOMS.bath.init=function(r){hi.apply(this,arguments);
+    var W=480,H=237,L=510,T=418,f=.47;
+    r.tubB.style.cssText+=';left:'+L+'px;top:'+T+'px;width:'+W+'px;height:'+H+'px';r.tubB.innerHTML=spr('tub.png',W,H,0,1);
+    r.tubF.style.cssText+=';left:'+L+'px;top:'+(T+H*f).toFixed(0)+'px;width:'+W+'px;height:'+(H*(1-f)).toFixed(0)+'px';r.tubF.innerHTML=spr('tub.png',W,H,f,1);
+    r.foamEl.style.left='540px';r.foamEl.style.top='470px';r.foamEl.style.width='420px';};}
+
 /* ---- gentle parallax for every painted plate ---- */
 var tx=0,ty=0,cx=0,cy=0;
 addEventListener('pointermove',function(e){tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5;});

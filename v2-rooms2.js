@@ -82,6 +82,26 @@ if(ROOMS.bath){ROOMS.bath.bg=plate('bath','bg-bath.jpg',{
     r.tubF.style.cssText+=';left:'+L+'px;top:'+(T+H*f).toFixed(0)+'px;width:'+W+'px;height:'+(H*(1-f)).toFixed(0)+'px';r.tubF.innerHTML=spr('tub.png',W,H,f,1);
     r.foamEl.style.left='540px';r.foamEl.style.top='470px';r.foamEl.style.width='420px';};}
 
+
+/* ===== Section 3: school story (morning, bag, road, class) ===== */
+function swapBg(html){var sc=A.scene(),b=sc.querySelector(':scope > svg.bg');if(b){b.insertAdjacentHTML('beforebegin',html);b.remove();}}
+function hideFlatBed(){var q=A.scene().querySelectorAll('.prop');for(var i=0;i<q.length;i++){var p=q[i],l=parseInt(p.style.left),t=parseInt(p.style.top);
+  if(l===450&&t===330)p.style.visibility='hidden';
+  if(l===440&&t===520&&!p.querySelector('.v2duvet')){p.innerHTML='<div class="v2duvet"></div>';p.style.left='398px';p.style.top='540px';p.style.width='520px';p.style.height='120px';}}}
+['sch1','sch2'].forEach(function(id){var R0=ROOMS[id];if(!R0)return;var oi=R0.init;R0.init=function(r){oi.apply(this,arguments);setTimeout(hideFlatBed,30);};});
+if(ROOMS.sch1){var mo=new MutationObserver(function(){if(document.querySelector('#scene .v2-bedroom'))hideFlatBed();});mo.observe(A.scene(),{childList:true});}
+if(ROOMS.sch3){var s3=ROOMS.sch3.init;ROOMS.sch3.init=function(r){s3.apply(this,arguments);
+  swapBg(plate('road','bg-road.jpg',{glow:'<i class="v2sunset" style="left:80px;top:300px;width:600px;height:360px;margin:-180px 0 0 -300px"></i>',motes:10,moteBox:[0,60,1280,300]}));
+  var far=A.scene().querySelector('.par.far');if(far)far.style.display='none';};}
+if(ROOMS.sch4){var s4=ROOMS.sch4.init;ROOMS.sch4.init=function(r){s4.apply(this,arguments);var sc=A.scene();
+  swapBg(plate('sch4','bg-sch4.jpg',{beam:'left:820px;top:0;width:460px;height:640px',glow:'<i class="v2neon v2gold" style="left:640px;top:72px;width:160px;height:150px"></i>',motes:16}));
+  var b=sc.querySelector('.sboard');if(b)b.classList.add('v2board');
+  var t=sc.querySelector('.teacher');if(t){t.innerHTML='<img src="img/teacher.png" alt="" draggable="false" class="v2fig">';t.style.top='232px';t.style.height='376px';t.style.width='146px';}
+  var ks=sc.querySelectorAll('.kid');for(var i=0;i<ks.length;i++){var k=ks[i];var w=[60,80,58,72][i%4];k.innerHTML='<img src="img/kid'+(i%4)+'.png" alt="" draggable="false" class="v2fig">';
+    var cx=parseInt(k.style.left)+50;k.style.width=w+'px';k.style.left=(cx-w/2)+'px';k.style.height='192px';k.style.top=(parseInt(k.style.top)-30)+'px';}
+  var ps=sc.querySelectorAll('.prop');for(var j=0;j<ps.length;j++){var p=ps[j];if(p.classList.contains('kid')||p.classList.contains('teacher'))continue;var w2=parseInt(p.style.width),h2=parseInt(p.style.height);
+    if((w2===180&&h2===90)||(w2===220&&h2===110)){p.innerHTML='<img src="img/desk.png" alt="" draggable="false" class="v2fig">';p.style.height=Math.round(w2*297/500)+'px';p.style.top=(parseInt(p.style.top)-Math.round(w2*297/500-h2)+10)+'px';}}};}
+
 /* ---- gentle parallax for every painted plate ---- */
 var tx=0,ty=0,cx=0,cy=0;
 addEventListener('pointermove',function(e){tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5;});

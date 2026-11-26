@@ -150,3 +150,6 @@ html,body{background:radial-gradient(ellipse at 50% 40%,#2f1b4f,#160a28 70%)!imp
 #oven.on .v2ovenglow{background:radial-gradient(ellipse,rgba(255,170,80,.85),rgba(255,120,60,.3) 50%,transparent 75%);animation:v2breathe 1s ease-in-out infinite}
 #oven .pbar{z-index:2}
 .prop.v2ghost>svg,.prop.v2ghost>img{opacity:0}
+.v2fig{width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 10px 12px rgba(60,20,40,.3))}
+.sboard.v2board{left:378px;top:126px;width:528px;height:282px;background:transparent;border:0;box-shadow:none;border-radius:6px}
+.v2p .v2gold{background:radial-gradient(ellipse,rgba(255,210,110,.55),rgba(255,180,90,.15) 45%,transparent 70%)}

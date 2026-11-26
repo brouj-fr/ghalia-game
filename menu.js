@@ -3,8 +3,8 @@
 'use strict';
 var A=GAME.api,ROOMS=GAME.ROOMS,ORDER=GAME.ORDER;
 var CATS=[
- {id:'feat',name:'المميز ⭐',rooms:['pool','toys','sch1','world3d','shop','garden','balloons','salon','kitchen','memory','makeup','nails']},
- {id:'school',name:'المدرسة 🎒',rooms:['sch1','sch2','sch3','sch4','world3d','class3d']},
+ {id:'feat',name:'المميز ⭐',rooms:['pool','toys','sch1','trace','world3d','shop','garden','balloons','salon','kitchen','memory','makeup','nails']},
+ {id:'school',name:'المدرسة 🎒',rooms:['sch1','trace','sch2','sch3','sch4','world3d','class3d']},
  {id:'games',name:'ألعاب 🎮',rooms:['pool','toys','memory','catch','balloons','whack','shop']},
  {id:'home',name:'بيت الأحلام 🏠',rooms:['toys','garden','kitchen','bedroom','bath','wardrobe','dress']},
  {id:'beauty',name:'الجمال 💄',rooms:['salon','makeup','nails','masks','dress','wardrobe']},

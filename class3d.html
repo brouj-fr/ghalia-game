@@ -1540,7 +1540,7 @@
             renderer, rig: ghaliaRig, mainCamera: camera, Module: GhaliaClassScene,
             onEvent: (type, d) => {
               if (type === 'start-class-game') { if (!isModalOpen) openMiniGame(); }
-              else if (type === 'board') showBubble('نقرأ الحروف مع المعلمة! 📚', 1600);
+              else if (type === 'board') { showBubble('يلا نكتب الحروف على السبورة! ✍️', 1400); setTimeout(() => window.GHALIA_TRACE ? GHALIA_TRACE.go('class3d') : (location.href = 'trace.html?from=class3d'), 900); }
               else if (type === 'star') { SFX.coin && SFX.coin(); showBubble('نجمة الصف تلمع! ⭐', 1600); }
               else if (type === 'letter' && d.char) showBubble('حرف ' + d.char + ' ✨', 1200);
             },
@@ -1557,6 +1557,7 @@
 
 <script>/* v2 chrome: film grain + sunset wipe on the way back to the game */
 (function(){try{V2.grain(document.body,{opacity:.05,vignette:false});var b=document.getElementById('back-home');if(b)b.addEventListener('click',function(e){e.preventDefault();var h=b.getAttribute('href');V2.wipe(function(){location.href=h;},'البيت');});}catch(e){}})();</script>
+<script src="trace-entry.js"></script>
 <script>V2.certify(document.querySelector('#certificate-modal .modal-card'));</script>
 </body>
 </html>

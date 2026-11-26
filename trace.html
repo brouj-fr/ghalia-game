@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#160a28">
+<title>أكتب مع غالية ✍️</title>
+<link rel="stylesheet" href="fonts/tajawal.css">
+<link rel="stylesheet" href="fonts/v2.css">
+<link rel="stylesheet" href="chrome.css">
+<link rel="stylesheet" href="trace.css">
+</head>
+<body>
+<div id="tr-bg"><div class="plate"></div><div class="glow"></div></div>
+<header id="tr-top">
+  <button id="tr-back" class="tr-pill" aria-label="رجوع">🏠</button>
+  <div class="tr-title">✍️ أكتب مع غالية</div>
+  <div class="tr-sp"></div>
+  <div id="tr-coins" class="tr-pill"></div>
+  <button id="tr-snd" class="tr-pill" aria-label="الصوت">🔊</button>
+</header>
+
+<section id="tr-pick" class="tr-view">
+  <div class="tr-tabs" role="tablist">
+    <button data-set="ar" class="on">أ ب ت <small>عربي</small></button>
+    <button data-set="up">A B C <small>كبير</small></button>
+    <button data-set="lo">a b c <small>صغير</small></button>
+  </div>
+  <div class="tr-total"></div>
+  <div id="tr-grid"></div>
+</section>
+
+<section id="tr-play" class="tr-view" hidden>
+  <div id="tr-info">
+    <button id="tr-letters" class="tr-pill">🔠 الحروف</button>
+    <div class="tr-card">
+      <div class="tr-big" id="tr-bigch"></div>
+      <div class="tr-name" id="tr-name"></div>
+      <div class="tr-word" id="tr-word"></div>
+      <div class="tr-steps" id="tr-steps"></div>
+    </div>
+    <div class="tr-nav">
+      <button id="tr-prev" class="tr-pill" aria-label="السابق">▶</button>
+      <button id="tr-again" class="tr-pill" aria-label="من جديد">🔁</button>
+      <button id="tr-hear" class="tr-pill" aria-label="اسمعي">🔈</button>
+      <button id="tr-next" class="tr-pill" aria-label="التالي">◀</button>
+    </div>
+  </div>
+  <div id="tr-board">
+    <div class="tr-slate">
+      <svg id="tr-svg" viewBox="0 0 100 100" aria-label="لوح التتبع">
+        <defs>
+          <filter id="chalk" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="4" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" result="d"/>
+            <feComponentTransfer in="n" result="m"><feFuncA type="linear" slope="2.2" intercept="-.5"/></feComponentTransfer>
+            <feComposite in="d" in2="m" operator="in"/>
+          </filter>
+          
+        </defs>
+        <g id="tr-lines"></g><g id="tr-ghost"></g><g id="tr-dots"></g><g id="tr-done"></g><g id="tr-live"></g><g id="tr-hint"></g><g id="tr-badges"></g>
+      </svg>
+    </div>
+  </div>
+  <div id="tr-msg"></div>
+  <div id="tr-ghalia" aria-hidden="true"><div class="sh"></div><img class="a" alt="" draggable="false"><img class="b" alt="" draggable="false"></div>
+</section>
+
+<div id="tr-win" hidden>
+  <canvas id="tr-confetti"></canvas>
+  <div class="tr-wcard">
+    <div class="tr-wstar">⭐</div>
+    <div class="tr-wtitle" id="tr-wtitle"></div>
+    <div class="tr-wstars" id="tr-wstars"></div>
+    <div class="tr-wcoin" id="tr-wcoin"></div>
+    <div class="tr-wbtns">
+      <button id="tr-wnext" class="tr-btn">الحرف اللي بعده ◀</button>
+      <button id="tr-wagain" class="tr-btn alt">مرة ثانية 🔁</button>
+      <button id="tr-wlist" class="tr-btn alt">الحروف 🔠</button>
+    </div>
+  </div>
+</div>
+<script src="chrome.js"></script>
+<script src="trace-letters.js"></script>
+<script src="trace.js"></script>
+</body>
+</html>

@@ -493,6 +493,21 @@
 <link rel="stylesheet" href="fonts/v2.css">
 <link rel="stylesheet" href="chrome.css">
 <style>#ghalia-face-badge{position:absolute;top:-46px;left:50%;transform:translateX(-50%);width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#fff6fb,#ffd3e6);box-shadow:0 8px 24px rgba(120,30,80,.35),0 0 0 4px #fff;z-index:3;pointer-events:none}#minigame-modal .modal-card{position:relative;overflow:visible;margin-top:46px}</style>
+<style id="v2-sec5-modals">
+.modal-backdrop:not(#certificate-modal){background:radial-gradient(ellipse at 50% 40%,rgba(40,14,60,.35),rgba(22,10,40,.72))!important}
+.modal-backdrop:not(#certificate-modal) .modal-card{background:linear-gradient(160deg,rgba(60,24,80,.9),rgba(28,12,48,.94))!important;border:1.5px solid rgba(255,190,220,.45)!important;box-shadow:0 30px 60px rgba(8,0,20,.6),0 0 40px rgba(255,71,126,.35),inset 0 1px 0 rgba(255,255,255,.25)!important;color:#ffeaf4;backdrop-filter:blur(10px)}
+.modal-backdrop:not(#certificate-modal) .modal-title{font-family:"Lalezar","Cairo",sans-serif;font-weight:400;color:#fff;text-shadow:0 0 16px rgba(255,120,180,.8)}
+.modal-backdrop:not(#certificate-modal) p{color:#ffd9ec}
+.modal-backdrop:not(#certificate-modal) .close-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,190,220,.5);color:#fff}
+.modal-backdrop:not(#certificate-modal) .item-card{background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.05));border:1.5px solid rgba(255,200,230,.35);color:#fff;box-shadow:0 10px 20px rgba(8,0,20,.35);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.modal-backdrop:not(#certificate-modal) .item-card:hover{transform:translateY(-3px)}
+.modal-backdrop:not(#certificate-modal) .item-card b{color:#fff}
+.modal-backdrop:not(#certificate-modal) .item-card.active{border-color:#ffd166;background:linear-gradient(160deg,rgba(255,209,102,.3),rgba(255,120,180,.12));box-shadow:0 0 22px rgba(255,209,102,.45)}
+.modal-backdrop:not(#certificate-modal) .item-card.correct-pop{border-color:#4be38a;background:rgba(75,227,138,.22)}
+#minigame-modal .modal-card>div[style*="dashed"]{background:rgba(255,255,255,.1)!important;border:1.5px dashed rgba(255,200,230,.55)!important}
+#question-title{color:#ffd9ec!important}#question-target{color:#fff!important;text-shadow:0 0 14px rgba(255,120,180,.8)}#feedback-text{color:#ffd166!important}
+#progress-pill{background:rgba(255,255,255,.16)!important;color:#fff}
+</style>
 </head>
 <body>
   <canvas id="game-canvas"></canvas>

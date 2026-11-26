@@ -175,6 +175,40 @@
 <link rel="stylesheet" href="fonts/v2.css">
 <link rel="stylesheet" href="chrome.css">
 <style>#ghalia-face-badge{position:absolute;top:-46px;left:50%;transform:translateX(-50%);width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#fff6fb,#ffd3e6);box-shadow:0 8px 24px rgba(120,30,80,.35),0 0 0 4px #fff;z-index:3;pointer-events:none}#minigame-modal .modal-card{position:relative;overflow:visible;margin-top:46px}</style>
+<style id="v2-sec5">
+#v2car{position:fixed;inset:0;z-index:5;display:none;overflow:hidden;background:#2a1626}
+body.v2-car #v2car{display:block}
+#v2car .v2c-bg{position:absolute;inset:0;background:url(img/bg-road-wide.jpg) 0 50%/auto 100% repeat-x;will-change:background-position}
+#v2car .v2c-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 50% at 20% 30%,rgba(255,190,120,.35),transparent 70%),linear-gradient(0deg,rgba(40,10,40,.25),transparent 40%)}
+#v2car .v2c-car{position:absolute;left:50%;bottom:7vh;height:min(30vh,36vw);transform:translateX(-50%);filter:drop-shadow(0 14px 14px rgba(30,10,30,.45));will-change:transform}
+#v2car .v2c-light{position:absolute;right:7vw;top:22vh;width:46px;padding:8px 0;border-radius:16px;background:linear-gradient(#4a3550,#2b1d33);box-shadow:0 10px 24px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.2);display:flex;flex-direction:column;align-items:center;gap:8px}
+#v2car .v2c-light i{width:30px;height:30px;border-radius:50%;background:#3a2a40;transition:all .3s}
+#v2car .v2c-light.red i.r{background:#ff4d6d;box-shadow:0 0 22px 6px rgba(255,77,109,.8)}
+#v2car .v2c-light.green i.g{background:#4be38a;box-shadow:0 0 22px 6px rgba(75,227,138,.8)}
+body.v2-car #game-canvas{visibility:hidden}
+body.v2-car .car-hud{left:auto!important;right:max(14px,3vw)!important;transform:none!important;bottom:104px!important;align-items:flex-end!important}
+#v2car .v2c-car{left:44%}
+.modal-backdrop:not(#certificate-modal){background:radial-gradient(ellipse at 50% 40%,rgba(40,14,60,.35),rgba(22,10,40,.72))!important}
+.modal-backdrop:not(#certificate-modal) .modal-card{background:linear-gradient(160deg,rgba(60,24,80,.9),rgba(28,12,48,.94))!important;border:1.5px solid rgba(255,190,220,.45)!important;box-shadow:0 30px 60px rgba(8,0,20,.6),0 0 40px rgba(255,71,126,.35),inset 0 1px 0 rgba(255,255,255,.25)!important;color:#ffeaf4;backdrop-filter:blur(10px)}
+.modal-backdrop:not(#certificate-modal) .modal-title{font-family:"Lalezar","Cairo",sans-serif;font-weight:400;color:#fff;text-shadow:0 0 16px rgba(255,120,180,.8)}
+.modal-backdrop:not(#certificate-modal) p{color:#ffd9ec}
+.modal-backdrop:not(#certificate-modal) .close-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,190,220,.5);color:#fff}
+.modal-backdrop:not(#certificate-modal) .item-card{background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.05));border:1.5px solid rgba(255,200,230,.35);color:#fff;box-shadow:0 10px 20px rgba(8,0,20,.35);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.modal-backdrop:not(#certificate-modal) .item-card:hover{transform:translateY(-3px)}
+.modal-backdrop:not(#certificate-modal) .item-card b{color:#fff}
+.modal-backdrop:not(#certificate-modal) .item-card.active{border-color:#ffd166;background:linear-gradient(160deg,rgba(255,209,102,.3),rgba(255,120,180,.12));box-shadow:0 0 22px rgba(255,209,102,.45)}
+.modal-backdrop:not(#certificate-modal) .item-card.correct-pop{border-color:#4be38a;background:rgba(75,227,138,.22)}
+#hub-modal .item-card{position:relative;overflow:hidden;min-height:120px;justify-content:flex-end;background-size:cover!important;background-position:center!important}
+#hub-modal .item-card::before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(22,10,40,.85),rgba(22,10,40,0) 60%)}
+#hub-modal .item-card>*{position:relative}
+#hub-modal .item-card[data-world=bedroom]{background-image:url(img/thumbs/world3d.jpg)!important}
+#hub-modal .item-card[data-world=car]{background-image:url(img/thumbs/sch3.jpg)!important}
+#hub-modal .item-card[data-world=classroom]{background-image:url(img/thumbs/class3d.jpg)!important}
+#hub-modal .item-card[data-world=shop]{background-image:url(img/thumbs/schoolshop.jpg)!important}
+#minigame-modal .modal-card>div[style*="dashed"]{background:rgba(255,255,255,.1)!important;border:1.5px dashed rgba(255,200,230,.55)!important}
+#question-title{color:#ffd9ec!important}#question-target{color:#fff!important;text-shadow:0 0 14px rgba(255,120,180,.8)}#feedback-text{color:#ffd166!important}
+#progress-pill{background:rgba(255,255,255,.16)!important;color:#fff}
+</style>
 <style id="v2-start">
 #start-overlay{background:radial-gradient(120% 80% at 50% 110%,rgba(255,140,90,.28),rgba(22,10,40,.0) 60%),linear-gradient(180deg,rgba(22,10,40,.15),rgba(22,10,40,.55))!important;backdrop-filter:blur(2px)!important;-webkit-backdrop-filter:blur(2px)!important}
 #start-overlay .start-card{background:linear-gradient(180deg,rgba(45,22,70,.78),rgba(22,10,40,.86))!important;border:1.5px solid rgba(255,214,150,.45)!important;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(255,120,180,.25)!important;border-radius:28px!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:v2cardIn .9s cubic-bezier(.2,.9,.25,1.2) both}
@@ -227,6 +261,7 @@
   </div>
 
   <!-- Car HUD -->
+  <div id="v2car" aria-hidden="true"><div class="v2c-bg"></div><div class="v2c-glow"></div><div class="v2c-light"><i class="r"></i><i class="g"></i></div><img class="v2c-car" src="img/car.png" alt=""><div class="v2c-dust"></div></div>
   <div class="car-hud" id="car-hud">
     <div class="traffic-pill" id="traffic-pill">🟢 الإشارة خضراء! انطلقي</div>
     <button class="drive-btn" id="drive-btn">🚗 انطلقي</button>
@@ -316,6 +351,10 @@
   <script src="scene-kit.js"></script>
   <script src="house-art.js"></script>
   <script src="house-scene.js"></script>
+  <script src="class-art.js"></script>
+  <script src="class-scene.js"></script>
+  <script src="shop-art.js"></script>
+  <script src="shop-scene.js"></script>
   <script src="illustrated-world.js"></script>
   <script>
     (function () {
@@ -999,15 +1038,18 @@
         carHud.classList.toggle('active', isCar);
 
         if (name !== 'bedroom') setWorldLight('day');
-        if (ILL) { if (name === 'bedroom') ILL.enter(); else ILL.leave(); }
-        if (name === 'bedroom' && ILL) { /* 2.5D illustrated dream house (house-scene.js) */ }
+        if (ILL && ILL.active) ILL.leave();
+        if (!ILLS[name] && ILL_MAKERS[name]) { try { ILLS[name] = ILL_MAKERS[name](); } catch (err) { console.warn('[world3d] illustrated ' + name + ' unavailable', err); ILL_MAKERS[name] = null; } }
+        ILL = ILLS[name] || null; if (ILL) ILL.enter();
+        document.body.classList.toggle('v2-car', isCar && !!window.__v2carOK);
+        if (ILL) { /* 2.5D illustrated world (house / class / shop scene) */ }
         else if (name === 'bedroom') buildDreamhouseBedroom();
         else if (name === 'car') buildCarWorld();
         else if (name === 'classroom') buildClassroom();
         else if (name === 'shop') buildShop();
       }
 
-      let ILL = null;
+      let ILL = null; const ILLS = {}; const ILL_MAKERS = {};
       let joyId = null, joyX = 0, joyY = 0, walkTarget = null, pendingInteract = null, isModalOpen = false, happySpin = 0;
       function updateJoy(cx, cy) {
         const r = joyZone.getBoundingClientRect(), mx = r.width * 0.36;
@@ -1326,9 +1368,34 @@
 
       ILL = null;
       try {
+        if (window.V2ILL && window.GhaliaSceneKit && !/[?&]classic\b/.test(location.search)) {
+          window.__v2carOK = true;
+          if (window.GhaliaClassScene) ILL_MAKERS.classroom = () => V2ILL.create({
+            renderer, rig: ghaliaRig, mainCamera: camera, Module: GhaliaClassScene,
+            onEvent: (type, d) => {
+              if (type === 'start-class-game') { if (!isModalOpen) openTypeModal('classroom'); }
+              else if (type === 'board') showBubble('نقرأ الحروف مع المعلمة! 📚', 1600);
+              else if (type === 'star') { SFX.coin && SFX.coin(); showBubble('نجمة الصف تلمع! ⭐', 1600); }
+              else if (type === 'letter' && d.char) showBubble('حرف ' + d.char + ' ✨', 1200);
+            },
+            onGhaliaTap: (x, y) => { SFX.tap(); spawnSparkles(x, y, 8); },
+            onTapObject: (name, x, y) => { SFX.tap(); spawnSparkles(x, y, 6); }
+          });
+          if (window.GhaliaShopScene) ILL_MAKERS.shop = () => V2ILL.create({
+            renderer, rig: ghaliaRig, mainCamera: camera, Module: GhaliaShopScene,
+            onEvent: (type) => {
+              if (type === 'open-shop') { if (!isModalOpen) openTypeModal('shop'); }
+              else if (type === 'candy') showBubble('حلاوة ملونة! 🍬', 1500);
+              else if (type === 'shelf') showBubble('دفاتر وأقلام وشنط حلوة! انقري على الكاونتر للشراء 🛍️', 2000);
+              else if (type === 'star') { SFX.coin && SFX.coin(); showBubble('نجمة المتجر تلمع! ⭐', 1500); }
+            },
+            onGhaliaTap: (x, y) => { SFX.tap(); spawnSparkles(x, y, 8); },
+            onTapObject: (name, x, y) => { SFX.tap(); spawnSparkles(x, y, 6); }
+          });
+        }
         if (window.V2ILL && window.GhaliaHouseScene && window.GhaliaSceneKit && !/[?&]classic\b/.test(location.search)) {
           const go = (url, label) => { const f = () => { location.href = url; }; (window.V2 && V2.wipe) ? V2.wipe(f, label) : f(); };
-          ILL = V2ILL.create({
+          ILL_MAKERS.bedroom = () => V2ILL.create({
             renderer, rig: ghaliaRig, mainCamera: camera, Module: GhaliaHouseScene,
             onEvent: (type) => {
               if (type === 'dressing-room') { showBubble('نختار فستان؟ يلا غرفة الملابس! 👗', 1600); setTimeout(() => go('index.html#room=dress', 'غرفة الملابس'), 500); }
@@ -1339,7 +1406,7 @@
             onTapObject: (name, x, y) => {
               SFX.tap(); spawnSparkles(x, y, 6);
               if (name === 'wardrobe' || name === 'mirror') SFX.fanfare && SFX.fanfare();
-              else if (name === 'unicorn') { openTypeModal('stage'); ILL.coinRain(); }
+              else if (name === 'unicorn') { openTypeModal('stage'); ILL && ILL.coinRain(); }
               else if (name === 'teddy') { showBubble('دبدوب يقول: نجهّز الشنطة؟ 🧸🎒', 1500); setTimeout(() => openTypeModal('closet'), 700); }
               else if (name === 'bed') showBubble('سرير الأميرة! نوم هني 💤', 1800);
               else if (name === 'window') showBubble('شوفي الغروب! 🌅', 1800);
@@ -1350,11 +1417,18 @@
             }
       } catch (err) { console.warn('[world3d] illustrated house unavailable, using 3D room', err); ILL = null; }
       switchWorld('bedroom');
-      window.__w3 = { ill: () => ILL, interact: (t) => handleInteract(t, null), world: () => currentWorld, switchWorld, rig: ghaliaRig, ghalia, openQuiz: () => openTypeModal('classroom') };
+      window.__w3 = { car: () => ({ z: carZ, driving: isDriving, green: trafficGreen }), ill: () => ILL, interact: (t) => handleInteract(t, null), world: () => currentWorld, switchWorld, rig: ghaliaRig, ghalia, openQuiz: () => openTypeModal('classroom') };
       animate();
     })();
   </script>
 
+<script>/* v2car-loop: illustrated side-scrolling car ride driven by the world's car state */
+(function(){var bg=document.querySelector('#v2car .v2c-bg'),car=document.querySelector('#v2car .v2c-car'),lt=document.querySelector('#v2car .v2c-light');if(!bg)return;var off=0,last=performance.now(),t=0;
+function f(now){requestAnimationFrame(f);var dt=Math.min(.05,(now-last)/1000);last=now;if(!document.body.classList.contains('v2-car')||!window.__w3||!__w3.car)return;var c=__w3.car();t+=dt;
+ var go=c.driving&&c.green;if(go)off+=dt*innerHeight*.9;bg.style.backgroundPosition=off.toFixed(1)+'px 50%';
+ car.style.transform='translateX(-50%) translateY('+(go?Math.sin(t*22)*2.2:Math.sin(t*2)*1).toFixed(2)+'px) rotate('+(go?-.6:0)+'deg)';
+ lt.className='v2c-light '+(c.green?'green':'red');}
+requestAnimationFrame(f);})();</script>
 <script>/* v2 chrome: film grain + sunset wipe on the way back to the game */
 (function(){try{V2.grain(document.body,{opacity:.05,vignette:false});var b=document.getElementById('back-home');if(b)b.addEventListener('click',function(e){e.preventDefault();var h=b.getAttribute('href');V2.wipe(function(){location.href=h;},'البيت');});}catch(e){}})();</script>
 <script>V2.certify(document.querySelector('#certificate-modal .modal-card'));</script>

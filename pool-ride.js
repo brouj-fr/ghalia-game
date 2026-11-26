@@ -150,7 +150,7 @@
       water.frustumCulled = false; water.renderOrder = 2; decor.add(water);
       // posts + ink outline
       var step = Math.max(1, Math.round(7 / tr.ds));
-      for (var k = step; k < tr.n - 2; k += step) { var P = tr.P[k], hgt = P.y - def.radius - .1; if (hgt < .6) continue;
+      for (var k = step; k < tr.n - 2; k += step) { if (Math.abs(tr.T[k].y) > .45) continue; var P = tr.P[k], hgt = P.y - def.radius / Math.max(.5, tr.N[k].y) - .35; if (hgt < .6) continue;
         var m = new THREE.Mesh(postGeo, postMat); m.position.set(P.x, 0, P.z); m.scale.set(1, hgt, 1); decor.add(m);
         var o = new THREE.Mesh(postGeo, inkMat); o.position.copy(m.position); o.scale.set(1.25, hgt, 1.25); decor.add(o); }
       // start tower deck

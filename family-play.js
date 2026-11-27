@@ -601,7 +601,7 @@
     if (!T || !world || !FS.create) return;
     var ids = rosterFor(room), spots, i, api, actors = {};
     if (room === 'pool') spots = [{ x: .42, z: .58 }, { x: -.52, z: .62 }, { x: .72, z: .42 }, { x: -.18, z: .72 }, { x: .15, z: .4 }];
-    else spots = [{ x: .45, z: .55 }, { x: -.55, z: .5 }, { x: .15, z: .75 }, { x: -.2, z: .35 }];
+    else spots = [{ x: .72, z: .38 }, { x: -.72, z: .42 }, { x: .55, z: .78 }, { x: -.5, z: .8 }];
     st = { room: room, mode: '3d', world: world, scene: scene, camera: camera, g3d: opts.ghalia, actors: {}, labels: {}, dead: false, last: performance.now(), fx: document.body };
     if (opts.ghalia && opts.gPos) {
       st.g3dApi = {

@@ -18,7 +18,7 @@
   var ride = GhaliaPoolRide.create(T, renderer, { quality: Q, overlay: ov, audio: A, onEvent: onRide });
   var ghalia = createGhalia(T, {}); scene.add(ghalia.group);
   var gPos = { x: 0, z: .5 }, target = null, arrive = null, hidden = false;
-  window.__pool = { world: world, ride: ride, ghalia: ghalia, get mode() { return mode; }, pick: pickSlide, startRide: startRide, events: [] };
+  window.__pool = { world: world, ride: ride, ghalia: ghalia, camera: camera, get pos() { return gPos; }, get mode() { return mode; }, pick: pickSlide, startRide: startRide, events: [] };
 
   function placeGhalia() { var a = world.actorAt(gPos.x, gPos.z); ghalia.group.position.copy(a.position); ghalia.group.scale.setScalar(a.height / 1.62); ghalia.group.traverse(function (o) { o.renderOrder = a.renderOrder; }); return a; }
   function resize() { var w = innerWidth, h = innerHeight; renderer.setSize(w, h); fx.setSize(w, h); world.setView(camera, w, h); ride.resize(w, h); layoutCards(); }

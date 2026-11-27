@@ -1,0 +1,28 @@
+/* Family + cousins: name tags, speech, play dock, 2D sprites */
+.fam-char{position:absolute;pointer-events:auto;cursor:pointer;transform-origin:50% 100%;-webkit-tap-highlight-color:transparent;user-select:none}
+.fam-char .fam-card{display:block;pointer-events:none;filter:drop-shadow(0 8px 5px rgba(60,20,40,.32));background-repeat:no-repeat}
+.fam-char .fam-tag{position:absolute;left:50%;top:-4px;bottom:auto;transform:translate(-50%,-100%);white-space:nowrap;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.92);border:1.5px solid rgba(236,28,121,.55);color:#9a245e;font:800 13px/1.2 Tajawal,Alexandria,system-ui,sans-serif;box-shadow:0 3px 8px rgba(90,20,60,.18);pointer-events:none;z-index:2}
+.fam-char.lift{filter:brightness(1.06);z-index:400!important}
+.fam-char.hiding .fam-card{filter:drop-shadow(0 8px 5px rgba(60,20,40,.32)) brightness(.92);opacity:.82}
+.fam-char.found .fam-tag{background:#fff3a8;border-color:#e0b000}
+.fam-say{position:absolute;transform:translate(-50%,-100%);padding:7px 12px;border-radius:16px;background:#fff;color:#7a2c64;font:800 15px/1.25 Tajawal,system-ui,sans-serif;box-shadow:0 8px 20px rgba(120,40,90,.28);pointer-events:none;white-space:nowrap;z-index:80;animation:famPop .25s cubic-bezier(.3,1.6,.5,1)}
+.fam-say small{display:block;font-size:11px;opacity:.7;font-weight:700}
+@keyframes famPop{from{opacity:0;transform:translate(-50%,-80%) scale(.85)}to{opacity:1;transform:translate(-50%,-100%) scale(1)}}
+.fam-heart{position:absolute;pointer-events:none;font-size:22px;z-index:90;animation:famUp 1.1s ease-out forwards}
+@keyframes famUp{0%{opacity:0;transform:translate(-50%,0) scale(.4)}20%{opacity:1;transform:translate(-50%,-10px) scale(1.1)}100%{opacity:0;transform:translate(-50%,-90px) scale(.9)}}
+.fam-ball{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff, #ff5a5a 38%,#c81c1c 70%);box-shadow:inset -4px -5px 0 rgba(0,0,0,.18),0 4px 0 rgba(80,20,20,.25);border:2px solid rgba(80,20,20,.45);z-index:70;pointer-events:none}
+.fam-ring{position:absolute;border:3px dashed rgba(255,105,170,.7);border-radius:50%;pointer-events:none;z-index:5;transform:translate(-50%,-50%)}
+.fam-dock{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:12;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:96%;pointer-events:auto;direction:rtl}
+.fam-dock button{appearance:none;border:0;cursor:pointer;padding:7px 11px;border-radius:999px;background:rgba(40,16,58,.55);border:1.5px solid rgba(255,244,234,.7);color:#fff8f0;font:800 13px/1 Tajawal,system-ui,sans-serif;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 12px rgba(90,30,80,.25)}
+.fam-dock button:active{transform:scale(.94)}
+.fam-dock button.on{background:linear-gradient(135deg,rgba(255,105,170,.9),rgba(110,190,255,.85));color:#3a1040}
+#room .fam-dock{bottom:8px}
+body.riding .fam-dock{display:none}
+.fam-splash{position:absolute;width:10px;height:10px;border-radius:50%;background:#c9f4ff;border:1.5px solid rgba(70,140,200,.8);pointer-events:none;z-index:80;animation:famSpl .7s ease-out forwards}
+@keyframes famSpl{to{opacity:0;transform:translate(var(--x),var(--y)) scale(.4)}}
+@media(max-width:700px){.fam-char .fam-tag{font-size:11px;padding:1px 6px}.fam-dock button{font-size:12px;padding:6px 9px}}
+#room .fam-dock{position:fixed;left:50%;top:max(108px, calc(env(safe-area-inset-top) + 96px));bottom:auto;right:auto;width:auto;max-width:80%;padding:0;transform:translateX(-50%);z-index:70}
+.fam-dock.fam-pool{position:fixed;left:0;right:0;width:auto;transform:none;padding:0 10px;
+  top:max(58px, calc(env(safe-area-inset-top) + 52px));bottom:auto;z-index:12}
+.fam-dock.fam-house{position:fixed;top:max(70px, calc(env(safe-area-inset-top) + 62px));bottom:auto;left:50%;transform:translateX(-50%);width:auto;max-width:90%}
+.fam-tag3d{position:fixed;transform:translate(-50%,0);z-index:9;pointer-events:none;bottom:auto}

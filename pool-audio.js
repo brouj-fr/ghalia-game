@@ -2,7 +2,7 @@
    tick, synthesized "wheee" + giggles, and short ENGLISH spoken lines via speechSynthesis (English voices only, never Arabic). */
 (function (root) {
   'use strict';
-  var ctx = null, master = null, noiseBuf = null, rush = null, on = true, voice = null;
+  var ctx = null, master = null, noiseBuf = null, rush = null, park = null, on = true, voice = null;
   try { on = localStorage.getItem('ghalia_pool_sound') !== '0'; } catch (e) {}
   function ensure() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return ctx; }
@@ -42,7 +42,7 @@
   var A = {
     unlock: function () { ensure(); },
     get on() { return on; },
-    setOn: function (v) { on = !!v; try { localStorage.setItem('ghalia_pool_sound', on ? '1' : '0'); } catch (e) {} if (master) master.gain.value = on ? .9 : 0; if (!on && root.speechSynthesis) speechSynthesis.cancel(); },
+    setOn: function (v) { on = !!v; try { localStorage.setItem('ghalia_pool_sound', on ? '1' : '0'); } catch (e) {} if (master) master.gain.value = on ? .9 : 0; if (!on && root.speechSynthesis) speechSynthesis.cancel(); if (!on && A.parkStop) A.parkStop(); },
     /* continuous water rush while riding: level 0..1 drives volume + brightness */
     rushStart: function () {
       if (!ensure() || rush) return; var t = ctx.currentTime;
@@ -77,7 +77,35 @@
       if (!ensure()) return; var t = ctx.currentTime + .05; n = n || 6;
       for (var i = 0; i < n; i++) { var f = 560 - i * 22 + Math.random() * 30; vowel(t, f * 1.08, f * .92, .13, .2, 950, 1550); burst(.08, 2500, 1800, .05, 'bandpass', t - ctx.currentTime); t += .16 + Math.random() * .03; }
     },
-    say: function (en) { if (!on || !('speechSynthesis' in root)) return; if (!voice) voice = pickVoice(); if (!voice) return; try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(en); u.voice = voice; u.lang = voice.lang; u.rate = 1.0; u.pitch = 1.45; speechSynthesis.speak(u); } catch (e) {} }
+    say: function (en) { if (!on || !('speechSynthesis' in root)) return; if (!voice) voice = pickVoice(); if (!voice) return; try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(en); u.voice = voice; u.lang = voice.lang; u.rate = 1.0; u.pitch = 1.45; speechSynthesis.speak(u); } catch (e) {} },
+    /* cheerful water-park bed: quiet splashy water + soft major-key triangle arpeggio, occasional giggles */
+    parkStart: function () {
+      if (!ensure() || park) return; var t = ctx.currentTime;
+      var s = noiseSrc(true), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+      lp.type = 'lowpass'; lp.frequency.value = 900; g.gain.value = 0.0001;
+      s.connect(lp); lp.connect(g); g.connect(master); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(.055, t + .4); s.start(t);
+      var osc = ctx.createOscillator(), og = ctx.createGain(), olp = ctx.createBiquadFilter();
+      osc.type = 'triangle'; olp.type = 'lowpass'; olp.frequency.value = 1800; og.gain.value = 0.0001;
+      osc.connect(olp); olp.connect(og); og.connect(master); og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(.042, t + .5); osc.frequency.setValueAtTime(523.25, t); osc.start(t);
+      var notes = [523.25, 659.25, 783.99, 392.00, 493.88, 587.33, 440.00, 523.25, 659.25, 349.23, 440.00, 523.25], step = 0;
+      var interval = setInterval(function () {
+        if (!park || !ctx) return; var now = ctx.currentTime, f = notes[step % notes.length];
+        try { osc.frequency.setTargetAtTime(f, now, .015); } catch (e) {}
+        if (step % 8 === 0) tone('sine', f * 2, f * 2.05, .12, .035);
+        step++;
+      }, 280);
+      var life = setInterval(function () {
+        if (!park || !on) return;
+        if (Math.random() < .5) A.giggle(2); else A.bubbles(4);
+      }, 2800);
+      park = { s: s, g: g, osc: osc, og: og, interval: interval, life: life };
+    },
+    parkStop: function () {
+      if (!park) return; var p = park, t = ctx ? ctx.currentTime : 0; park = null;
+      try { clearInterval(p.interval); clearInterval(p.life); } catch (e) {}
+      if (!ctx) return;
+      try { p.g.gain.setTargetAtTime(0, t, .12); p.og.gain.setTargetAtTime(0, t, .12); p.s.stop(t + .5); p.osc.stop(t + .5); } catch (e) {}
+    }
   };
   root.PoolAudio = A;
 })(typeof window !== 'undefined' ? window : globalThis);

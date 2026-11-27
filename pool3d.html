@@ -18,7 +18,7 @@ canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh;touch-actio
 #loader i{width:160px;height:8px;border-radius:9px;background:#fff5;overflow:hidden}#loader i s{display:block;height:100%;width:30%;background:#fff;border-radius:9px;animation:ld 1s infinite ease-in-out}
 @keyframes ld{0%{transform:translateX(-120%)}100%{transform:translateX(420%)}}
 .hud{position:fixed;z-index:10;transition:opacity .35s,transform .35s}
-body.riding .hud{opacity:0;pointer-events:none;transform:translateY(12px)}
+body.riding .hud{opacity:0!important;visibility:hidden;pointer-events:none;transform:translateY(12px)}
 body.riding #say{opacity:0!important;visibility:hidden}
 #top{top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
 #top>*{pointer-events:auto}

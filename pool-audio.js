@@ -66,6 +66,11 @@
       burst(1.1, 5000, 260, .9, 'lowpass'); burst(.5, 2600, 900, .5, 'bandpass', .02); tone('sine', 140, 38, .45, .9);
       for (var i = 0; i < 16; i++) tone('sine', 500 + Math.random() * 900, 1400 + Math.random() * 1400, .06 + Math.random() * .06, .07, .25 + Math.random() * .9);
     },
+    crash: function () {
+      if (!ensure()) return;
+      burst(1.45, 4200, 160, 1.0, 'lowpass'); burst(.7, 1800, 320, .75, 'bandpass', .03); tone('sine', 90, 24, .7, 1.0);
+      for (var i = 0; i < 20; i++) tone('sine', 400 + Math.random() * 1100, 1000 + Math.random() * 1600, .05 + Math.random() * .08, .08, .2 + Math.random() * 1.0);
+    },
     bubbles: function (n) { for (var i = 0; i < (n || 10); i++) tone('sine', 400 + Math.random() * 600, 1200 + Math.random() * 1600, .05 + Math.random() * .05, .06, Math.random() * .7); },
     wheee: function () { if (!ensure()) return; var t = ctx.currentTime; vowel(t, 620, 1050, 1.25, .22, 420, 2700); },
     giggle: function (n) {

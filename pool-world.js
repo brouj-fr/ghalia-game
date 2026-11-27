@@ -2,7 +2,9 @@
 (function () {
   'use strict';
   var T = THREE, K = GhaliaSceneKit, Q = K.detectQuality(), A = window.PoolAudio, ART = GhaliaArt.pool;
-  var NAMES = { spiral: 'Pink Twister 🌀', drop: 'Sunny Drop ⚡', rainbow: 'Rainbow Tube 🌈' };
+  var NAMES = { spiral: 'Pink Twister 🌀', drop: 'Sunny Drop ⚡', rainbow: 'Rainbow Tube 🌈', surf: "Surf's Up 🏄", river: 'Lazy River 🛟' };
+  var SAY_GO = { spiral: 'اللولبية! 🌀', drop: 'النزلة الكبيرة! ⚡', rainbow: 'قوس قزح! 🌈', surf: 'ركمجة! 🏄', river: 'مسبح النهر! 🛟' };
+  var HUD = { spiral: '👆 اضغطي مطوّل = أسرع · ↔ اسحبي = ميلي', drop: '👆 اضغطي مطوّل = أسرع · ↔ اسحبي = ميلي', rainbow: '👆 اضغطي مطوّل = أسرع · ↔ اسحبي = ميلي', surf: '👆 اسحبي = اقطعي الموجة · اضغطي مطوّل = أسرع', river: '👆 اسحبي = لفي الطوق · اضغطي = دفعة' };
   var canvas = document.getElementById('gl'), ov = document.getElementById('fx2d'), ox = ov.getContext('2d');
   var renderer = new T.WebGLRenderer({ canvas: canvas, antialias: false, powerPreference: 'high-performance' });
   K.setupRenderer(T, renderer, Q); renderer.setSize(innerWidth, innerHeight);
@@ -16,7 +18,7 @@
   var ride = GhaliaPoolRide.create(T, renderer, { quality: Q, overlay: ov, audio: A, onEvent: onRide });
   var ghalia = createGhalia(T, {}); scene.add(ghalia.group);
   var gPos = { x: 0, z: .5 }, target = null, arrive = null, hidden = false;
-  window.__pool = { world: world, ride: ride, ghalia: ghalia, get mode() { return mode; }, pick: pickSlide, events: [] };
+  window.__pool = { world: world, ride: ride, ghalia: ghalia, get mode() { return mode; }, pick: pickSlide, startRide: startRide, events: [] };
 
   function placeGhalia() { var a = world.actorAt(gPos.x, gPos.z); ghalia.group.position.copy(a.position); ghalia.group.scale.setScalar(a.height / 1.62); ghalia.group.traverse(function (o) { o.renderOrder = a.renderOrder; }); return a; }
   function resize() { var w = innerWidth, h = innerHeight; renderer.setSize(w, h); fx.setSize(w, h); world.setView(camera, w, h); ride.resize(w, h); layoutCards(); }
@@ -27,7 +29,9 @@
 
   /* thumbnails cropped from the painted plate */
   var CROP = { spiral: [.12, .08, .4, .7], drop: [.42, .1, .63, .72], rainbow: [.6, .2, .92, .74] };
-  function layoutCards() { document.querySelectorAll('.sl').forEach(function (b) { var c = CROP[b.dataset.slide], w = b.clientWidth, h = b.clientHeight, sx = w / (c[2] - c[0]), sy = h / (c[3] - c[1]), s = Math.max(sx, sy * 16 / 9), bw = s, bh = s * 9 / 16, im = b.querySelector('.im');
+  function layoutCards() { document.querySelectorAll('.sl').forEach(function (b) { var im = b.querySelector('.im'), id = b.dataset.slide;
+    if (id === 'surf' || id === 'river') { im.style.backgroundImage = 'url(img/thumbs/pool-' + id + '.jpg)'; im.style.backgroundSize = 'cover'; im.style.backgroundPosition = 'center'; return; }
+    var c = CROP[id], w = b.clientWidth, h = b.clientHeight, sx = w / (c[2] - c[0]), sy = h / (c[3] - c[1]), s = Math.max(sx, sy * 16 / 9), bw = s, bh = s * 9 / 16;
     im.style.backgroundSize = bw + 'px ' + bh + 'px'; im.style.backgroundPosition = (-(c[0] + c[2]) / 2 * bw + w / 2) + 'px ' + (-(c[1] + c[3]) / 2 * bh + h / 2) + 'px'; }); }
 
   var sayEl = document.getElementById('say'), sayT = 0;
@@ -42,17 +46,17 @@
     else if (type === 'water') { A.bubbles(6); var p = d.point ? worldToScreen(d.point) : null; if (p) splashAt(p.x, p.y, .45); ghalia.setExpression('surprised', { duration: 1 }); }
   }
 
-  function slideSpot(id) { var h = (world.stage.cfg.hits || []).filter(function (x) { return x.name === 'slide:' + id; })[0]; return h && h.spot ? { x: h.spot[0], z: h.spot[1] } : { x: 0, z: .3 }; }
+  function slideSpot(id) { var extra = { surf: { x: -.7, z: .42 }, river: { x: .7, z: .42 } }; if (extra[id]) return extra[id]; var h = (world.stage.cfg.hits || []).filter(function (x) { return x.name === 'slide:' + id; })[0]; return h && h.spot ? { x: h.spot[0], z: h.spot[1] } : { x: 0, z: .3 }; }
   function pickSlide(id) {
     if (busy || mode !== 'pool' || !world.stage.ready) return false; busy = true; A.unlock(); A.pop();
     var sp = world.clampToWalkable(slideSpot(id)); target = sp; var t0 = performance.now();
-    say({ spiral: 'اللولبية! 🌀', drop: 'النزلة الكبيرة! ⚡', rainbow: 'قوس قزح! 🌈' }[id]);
+    say(SAY_GO[id] || 'يلا! 💦');
     arrive = function () { ghalia.react('cheer'); ghalia.setExpression('happy', { duration: 2 }); A.giggle(3);
       setTimeout(function () { flash(true); A.whoosh(); setTimeout(function () { startRide(id); flash(false); }, 260); }, 650); };
     setTimeout(function () { if (arrive && performance.now() - t0 > 1500) { target = null; var f = arrive; arrive = null; f(); } }, 1600);
     return true;
   }
-  function startRide(id) { mode = 'ride'; document.body.classList.add('riding'); document.getElementById('ridename').textContent = NAMES[id]; ride.start(id); }
+  function startRide(id) { mode = 'ride'; document.body.classList.add('riding'); document.getElementById('say').classList.remove('on'); document.getElementById('ridename').textContent = NAMES[id] || id; var hud = document.querySelector('#ridehud .chip'); if (hud) hud.textContent = HUD[id] || HUD.spiral; ride.start(id); }
   var lastRide = null;
   function onRide(type, d) {
     window.__pool.events.push('ride:' + type);
@@ -65,12 +69,12 @@
   /* Ghalia pops out of the water laughing */
   var pop = document.getElementById('pop'), popImg = document.getElementById('popimg'); popImg.src = ART.laugh;
   function popUp(id) {
-    var ex = world.stage.cfg.slides[id].exit, p = uvToScreen(ex[0], ex[1]), h = Math.min(innerHeight * .42, innerWidth * .62), w = h * 640 / 453;
+    var slides = world.stage.cfg.slides || {}, ex = (slides[id] && slides[id].exit) || [.5, .74], p = uvToScreen(ex[0], ex[1]), h = Math.min(innerHeight * .42, innerWidth * .62), w = h * 640 / 453;
     pop.style.display = 'block'; pop.style.width = w + 'px'; pop.style.height = h + 'px'; pop.style.left = (Math.max(8, Math.min(innerWidth - w - 8, p.x - w / 2))) + 'px'; pop.style.top = (p.y - h * .92) + 'px';
     pop.querySelector('.clip').style.height = h + 'px'; pop.classList.remove('up'); void pop.offsetWidth; pop.classList.add('up');
     hidden = true; ghalia.group.visible = false; splashAt(p.x, p.y, 1.4); rides++; try { localStorage.setItem('ghalia_pool_rides', rides); } catch (e) {} showCount();
-    setTimeout(function () { A.giggle(8); }, 350); setTimeout(function () { A.say('Ha ha ha! That was so much fun! Again, again!'); }, 1500);
-    setTimeout(function () { say('هههه! مرة ثانية؟ 💦', 2200); }, 600);
+    setTimeout(function () { A.giggle(8); }, 350); setTimeout(function () { A.say(id === 'river' ? 'Ha ha ha! So relaxing! Again, again!' : 'Ha ha ha! That was so much fun! Again, again!'); }, 1500);
+    setTimeout(function () { say(id === 'surf' ? 'هههه! موجة ثانية؟ 🏄' : id === 'river' ? 'هههه! مرة ثانية؟ 🛟' : 'هههه! مرة ثانية؟ 💦', 2200); }, 600);
     setTimeout(function () { splashAt(p.x, p.y, .5); }, 3000);
     setTimeout(function () { pop.style.display = 'none'; pop.classList.remove('up'); var sp = world.clampToWalkable(slideSpot(id)); gPos.x = sp.x; gPos.z = Math.min(1, sp.z + .35); ghalia.group.visible = true; hidden = false; ghalia.react('jump'); ghalia.setExpression('happy', { duration: 3 }); A.pop(); mode = 'pool'; busy = false; }, 3450);
   }

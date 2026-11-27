@@ -1,12 +1,11 @@
-/* Bedroom sleep feature: Ghalia walks to bed, tucks under the quilt with her teddy,
-   night falls with moonlight, a soft lullaby, floating Zzz. Khala can lie beside her.
-   On-screen text is Arabic; anything SPOKEN is English via VOICE_EN. Classic script, offline. */
+/* Bedroom sleep: Ghalia and Khala walk to the bed, hop up, and slide under the
+   room's own quilt, heads on the pillows. On-screen text is Arabic; anything
+   SPOKEN is English via VOICE_EN. Classic script, offline. */
 (function(){
 'use strict';
 if(!window.GAME||!GAME.ROOMS||!GAME.ROOMS.bedroom)return;
 var A=GAME.api,ROOMS=GAME.ROOMS;
 
-/* ---- English voice lines (Arabic stays on screen) ---- */
 var LINES={
   intro:'وقت النوم! اضغطي نوم عشان غالية تنام تحت اللحاف مع دبدوبها 🌙',
   go:'يلا ننام يا غالية',
@@ -29,9 +28,14 @@ var LINES={
   };
   for(var k in add)if(!D[k])D[k]=add[k];
 })();
-
 ROOMS.bedroom.intro=LINES.intro;
 
+/* Final positions (scene px) of the lying sprites on the painted bed. */
+var POS={
+  ghalia:{x:676,y:242,w:296,h:211, start:{x:586,y:327}},
+  khala:{x:567,y:195,w:245,h:209, start:{x:487,y:280}}
+};
+var WALK={ghalia:[560,685], khala:[500,675]};
 var STARS=[[250,90],[310,70],[390,110],[460,80],[280,150],[430,160],[360,55],[500,130],[220,180]];
 var LULL=[[64,1],[67,1],[67,2],[64,1],[67,1],[67,2],[64,1],[67,1],[72,1],[71,1],[69,3],[65,1],[69,1],[69,2],[64,1],[67,1],[67,2],[64,1],[62,1],[64,1],[62,1],[60,4]];
 
@@ -58,34 +62,110 @@ function startLullaby(){
   }catch(e){}
 }
 
-function el(html,cls,x,y,w,h,z){var d=document.createElement('div');if(cls)d.className=cls;if(x!=null)d.style.left=x+'px';if(y!=null)d.style.top=y+'px';
-  if(w!=null)d.style.width=w+'px';if(h!=null)d.style.height=h+'px';if(z!=null)d.style.zIndex=z;if(html)d.innerHTML=html;return d;}
+function el(html,cls){var d=document.createElement('div');if(cls)d.className=cls;if(html)d.innerHTML=html;return d;}
 function later(r,fn,ms){var t=setTimeout(function(){if(!r||r.dead)return;fn();},ms);if(r&&r.timers)r.timers.push(t);return t;}
 function say(t){A.say(t);}
 
-function mkOverlay(src, extra){var d=el('','sl-overlay '+(extra||''),0,0,1280,720,13);
-  var img=document.createElement('img');img.src=src;img.alt='';img.draggable=false;d.appendChild(img);return d;}
-function mkNight(){var n=el('','sl-night',0,0,1280,720,12);
+function hideStand(r,who){
+  var c=r.chars[who];if(!c)return;
+  try{if(c.getAnimations)c.getAnimations().forEach(function(a){a.cancel();});}catch(e){}
+  c._walkId=0;c.classList.add('sl-tucked');c.style.opacity='0';c.style.visibility='hidden';c.style.pointerEvents='none';
+  var img=c.querySelector('img');if(img){img.style.animation='none';}
+}
+function showStand(r,who){
+  var c=r.chars[who];if(!c)return;
+  c.classList.remove('sl-tucked');c.style.opacity='';c.style.visibility='';c.style.pointerEvents='';c.style.transform='';c.style.scale='';
+}
+
+function walkTo(r,who,x,y,done){
+  var c=r.chars[who];
+  if(!c){A.putChar(who,x,y);if(done)done();return;}
+  if(window.LIFE&&LIFE.walkTo)LIFE.walkTo(c,x,y,done);
+  else{A.putChar(who,x,y);if(done)done();}
+}
+
+function hopUp(el,done){
+  if(!el||!el.animate){if(done)done();return;}
+  try{if(el.getAnimations)el.getAnimations().forEach(function(a){a.cancel();});}catch(e){}
+  el.style.zIndex='16';
+  var an=el.animate([
+    {transform:'translateY(0) scale(1,1)', offset:0},
+    {transform:'translateY(-18px) scale(1.06,.92)', offset:.18},
+    {transform:'translate(28px,-96px) scale(.95,1.06)', offset:.55},
+    {transform:'translate(36px,-70px) scale(1,1)', offset:1}
+  ],{duration:480,easing:'cubic-bezier(.2,.8,.25,1)',fill:'forwards'});
+  an.onfinish=function(){if(done)done();};
+}
+
+function placeSleeper(node,x,y){node.style.left=x+'px';node.style.top=y+'px';}
+
+function slideSleeper(node,from,to,ms,done){
+  placeSleeper(node,from.x,from.y);
+  node.classList.add('on');
+  if(!node.animate){placeSleeper(node,to.x,to.y);if(done)done();return;}
+  var an=node.animate([
+    {left:from.x+'px', top:from.y+'px'},
+    {left:to.x+'px', top:to.y+'px'}
+  ],{duration:ms||780,easing:'cubic-bezier(.25,.8,.2,1)',fill:'forwards'});
+  an.onfinish=function(){placeSleeper(node,to.x,to.y);if(done)done();};
+}
+
+function syncParallax(){
+  var lock=document.getElementById('sl-lock');
+  var par=document.querySelector('#scene .v2par');
+  if(!lock||!par)return;
+  lock.style.transform=par.style.transform||getComputedStyle(par).transform||'';
+}
+function startParallax(r){
+  if(window.__slPar)return;
+  window.__slPar=function loop(){
+    window.__slParId=requestAnimationFrame(loop);
+    var cur=A.getR();
+    if(!cur||cur.id!=='bedroom'||cur.dead)return;
+    syncParallax();
+  };
+  window.__slPar();
+}
+
+function mkLock(){
+  var lock=el('','');lock.id='sl-lock';
+  var g=el('','sl-sleeper sl-ghalia');g.style.width=POS.ghalia.w+'px';g.style.height=POS.ghalia.h+'px';
+  g.innerHTML='<img src="img/sleep/ghalia-sleeper.webp" alt="" draggable="false">';
+  placeSleeper(g,POS.ghalia.x,POS.ghalia.y);
+  var k=el('','sl-sleeper sl-khala');k.style.width=POS.khala.w+'px';k.style.height=POS.khala.h+'px';
+  k.innerHTML='<img src="img/sleep/khala-sleeper.webp" alt="" draggable="false">';
+  placeSleeper(k,POS.khala.x,POS.khala.y);
+  var q=el('','sl-quilt');q.innerHTML='<img src="img/sleep/quilt.webp" alt="" draggable="false">';
+  var hit=el('','sl-bedhit');
+  var z1=el('<i>z</i><i>z</i><i>Z</i>','sl-zzz');z1.style.left='890px';z1.style.top='220px';
+  var z2=el('<i>z</i><i>z</i><i>Z</i>','sl-zzz');z2.style.left='700px';z2.style.top='170px';
+  lock.appendChild(g);lock.appendChild(k);lock.appendChild(q);lock.appendChild(hit);lock.appendChild(z1);lock.appendChild(z2);
+  return {lock:lock,g:g,k:k,quilt:q,hit:hit,z1:z1,z2:z2};
+}
+
+function mkNight(){
+  var n=el('','sl-night');
   n.innerHTML='<div class="sl-dim"></div><div class="sl-moonbeam"></div>';
   STARS.forEach(function(p,i){var s=document.createElement('i');s.className='sl-stari';
     s.style.cssText='left:'+p[0]+'px;top:'+p[1]+'px;animation-delay:'+(i*.27)+'s;width:'+(8+(i%3)*3)+'px;height:'+(8+(i%3)*3)+'px';
     n.appendChild(s);});
-  return n;}
-function mkZzz(x,y){var z=el('<i>z</i><i>z</i><i>Z</i>','sl-zzz',x,y,40,40,16);return z;}
-function mkDock(){var d=el('','sl-dock');d.setAttribute('role','toolbar');d.setAttribute('aria-label','النوم');
+  return n;
+}
+function mkDock(){
+  var d=el('','sl-dock');d.setAttribute('role','toolbar');d.setAttribute('aria-label','النوم');
   d.innerHTML='<button type="button" class="sl-btn sl-sleep" data-act="sleep"><i>🌙</i><span>نوم</span></button>'+
     '<button type="button" class="sl-btn sl-khala" data-act="khala"><i>💗</i><span>خالة تنام بعد</span></button>'+
     '<button type="button" class="sl-btn sl-wake" data-act="wake" hidden><i>☀️</i><span>صباح الخير</span></button>';
-  return d;}
+  return d;
+}
 
 function setNight(r,on){
   r.slNight=!!on;if(r.slNightEl)r.slNightEl.classList.toggle('on',on);
   if(r.lamp)r.lamp.classList.toggle('off',on);
-  if(r.nightEl)r.nightEl.classList.toggle('on',false); /* use our cinematic night, not the flat overlay */
+  if(r.nightEl)r.nightEl.classList.toggle('on',false);
   r.night=!!on;
   var sc=A.scene();if(sc)sc.classList.toggle('sl-asleep',!!(on||r.slSleeping));
 }
-
 function updateDock(r){
   if(!r.slDock)return;
   var sleep=r.slDock.querySelector('.sl-sleep');
@@ -96,45 +176,6 @@ function updateDock(r){
   if(wake)wake.hidden=!r.slSleeping;
 }
 
-function hideStanders(r,who){
-  var list=who? [who] : ['ghalia','khala'];
-  list.forEach(function(w){var c=r.chars[w];if(!c)return;c.classList.add('sl-tucked');c._walkId=0;});
-}
-function showStanders(r){
-  ['ghalia','khala'].forEach(function(w){var c=r.chars[w];if(c)c.classList.remove('sl-tucked');});
-}
-
-function placeWakeChars(r){
-  A.putChar('ghalia',470,690,true);
-  if(r.chars.khala||r.slKhala)A.putChar('khala',300,700,true);
-}
-
-function walk(r,who,x,y,done){
-  var c=r.chars[who];
-  if(!c){A.putChar(who,x,y);if(done)done();return;}
-  if(window.LIFE&&LIFE.walkTo)LIFE.walkTo(c,x,y,done);
-  else{A.putChar(who,x,y);if(done)done();}
-}
-
-function showGhaliaBed(r){
-  if(!r.slGhaliaOv){r.slGhaliaOv=mkOverlay('img/sleep/ghalia.webp');A.scene().appendChild(r.slGhaliaOv);
-    r.slGhaliaOv.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(r.slSleeping)wakeUp(r);});}
-  r.slGhaliaOv.classList.remove('together','fade','breath');r.slGhaliaOv.classList.add('on');
-  if(r.slTogetherOv)r.slTogetherOv.classList.remove('on','breath','fade');
-  later(r,function(){if(r.slSleeping&&r.slGhaliaOv)r.slGhaliaOv.classList.add('breath');},900);
-  if(r.slZ1){r.slZ1.style.left='900px';r.slZ1.style.top='230px';r.slZ1.classList.add('on');}
-  if(r.slZ2)r.slZ2.classList.remove('on');
-}
-function showTogetherBed(r){
-  if(!r.slTogetherOv){r.slTogetherOv=mkOverlay('img/sleep/together.webp','together');A.scene().appendChild(r.slTogetherOv);
-    r.slTogetherOv.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(r.slSleeping)wakeUp(r);});}
-  r.slTogetherOv.classList.add('on','fade');
-  if(r.slGhaliaOv)r.slGhaliaOv.classList.remove('on','breath');
-  later(r,function(){if(r.slSleeping&&r.slTogetherOv)r.slTogetherOv.classList.add('breath');},700);
-  if(r.slZ1){r.slZ1.style.left='910px';r.slZ1.style.top='240px';r.slZ1.classList.add('on');}
-  if(r.slZ2){r.slZ2.style.left='560px';r.slZ2.style.top='210px';r.slZ2.classList.add('on');}
-}
-
 function lightsOut(r){
   setNight(r,true);
   if(A.sfx&&A.sfx.night)A.sfx.night();
@@ -142,18 +183,64 @@ function lightsOut(r){
   var sc=A.scene();if(sc)sc.classList.add('sl-asleep');
   if(r.blanket)r.blanket.style.visibility='hidden';
   if(r.teddy)r.teddy.style.visibility='hidden';
+  if(r.slLock)r.slLock.classList.add('hot');
 }
-
 function lightsUp(r){
   setNight(r,false);
   stopLullaby();
   if(A.sfx&&A.sfx.sparkle)A.sfx.sparkle();
   var sc=A.scene();if(sc)sc.classList.remove('sl-asleep');
   if(r.teddy)r.teddy.style.visibility='';
+  if(r.slLock)r.slLock.classList.remove('hot');
+  if(r.slG){r.slG.classList.remove('on','breath');try{if(r.slG.getAnimations)r.slG.getAnimations().forEach(function(a){a.cancel();});}catch(e){}}
+  if(r.slK){r.slK.classList.remove('on','breath');try{if(r.slK.getAnimations)r.slK.getAnimations().forEach(function(a){a.cancel();});}catch(e){}}
+  if(r.slQuilt)r.slQuilt.classList.remove('up');
   if(r.slZ1)r.slZ1.classList.remove('on');
   if(r.slZ2)r.slZ2.classList.remove('on');
-  if(r.slGhaliaOv)r.slGhaliaOv.classList.remove('on','breath','fade');
-  if(r.slTogetherOv)r.slTogetherOv.classList.remove('on','breath','fade');
+}
+
+function tuckGhalia(r,opts,done){
+  var P=POS.ghalia;
+  if(opts&&opts.instant){
+    hideStand(r,'ghalia');
+    placeSleeper(r.slG,P.x,P.y);r.slG.classList.add('on','breath');
+    if(r.slQuilt)r.slQuilt.classList.add('up');
+    if(r.slZ1)r.slZ1.classList.add('on');
+    if(done)done();return;
+  }
+  hopUp(r.chars.ghalia,function(){
+    if(r.dead)return;
+    hideStand(r,'ghalia');
+    if(r.slQuilt)r.slQuilt.classList.add('up');
+    slideSleeper(r.slG,P.start,P,780,function(){
+      if(r.dead)return;
+      r.slG.classList.add('breath');
+      if(r.slZ1)r.slZ1.classList.add('on');
+      if(done)done();
+    });
+  });
+}
+
+function tuckKhala(r,opts,done){
+  var P=POS.khala;
+  if(opts&&opts.instant){
+    hideStand(r,'khala');
+    placeSleeper(r.slK,P.x,P.y);r.slK.classList.add('on','breath');
+    if(r.slQuilt)r.slQuilt.classList.add('up');
+    if(r.slZ2)r.slZ2.classList.add('on');
+    if(done)done();return;
+  }
+  hopUp(r.chars.khala,function(){
+    if(r.dead)return;
+    hideStand(r,'khala');
+    if(r.slQuilt)r.slQuilt.classList.add('up');
+    slideSleeper(r.slK,P.start,P,780,function(){
+      if(r.dead)return;
+      r.slK.classList.add('breath');
+      if(r.slZ2)r.slZ2.classList.add('on');
+      if(done)done();
+    });
+  });
 }
 
 function goToSleep(r,opts){
@@ -163,19 +250,20 @@ function goToSleep(r,opts){
   r.slBusy=true;r.def.noWalk=true;r.def.noWander=true;
   say(LINES.go);
   if(!r.chars.ghalia)A.putChar('ghalia',320,690);
-  var afterWalk=function(){
+  var after=function(){
     if(r.dead)return;
-    hideStanders(r,'ghalia');
-    showGhaliaBed(r);
-    lightsOut(r);
-    r.slSleeping=true;r.inBed=true;r.slBusy=false;
-    updateDock(r);
-    later(r,function(){say(LINES.night);},500);
-    later(r,function(){say(LINES.dreams);},2800);
-    if(opts.khala)later(r,function(){khalaJoin(r,opts);},1800);
+    tuckGhalia(r,opts,function(){
+      if(r.dead)return;
+      lightsOut(r);
+      r.slSleeping=true;r.inBed=true;r.slBusy=false;
+      updateDock(r);
+      later(r,function(){say(LINES.night);},200);
+      later(r,function(){say(LINES.dreams);},2600);
+      if(opts.khala)later(r,function(){khalaJoin(r,opts);},900);
+    });
   };
-  if(opts.instant){afterWalk();}
-  else walk(r,'ghalia',620,655,afterWalk);
+  if(opts.instant)after();
+  else walkTo(r,'ghalia',WALK.ghalia[0],WALK.ghalia[1],after);
 }
 
 function khalaJoin(r,opts){
@@ -186,25 +274,26 @@ function khalaJoin(r,opts){
   if(!r.chars.khala)A.putChar('khala',400,700);
   var after=function(){
     if(r.dead)return;
-    hideStanders(r,'khala');
-    showTogetherBed(r);
-    r.slKhala=true;r.slBusy=false;
-    updateDock(r);
-    say(LINES.khala);
+    tuckKhala(r,opts,function(){
+      if(r.dead)return;
+      r.slKhala=true;r.slBusy=false;
+      updateDock(r);
+      say(LINES.khala);
+    });
   };
-  if(opts.instant){after();}
-  else walk(r,'khala',560,660,after);
+  if(opts.instant)after();
+  else walkTo(r,'khala',WALK.khala[0],WALK.khala[1],after);
 }
 
-function wakeUp(r,opts){
-  opts=opts||{};
+function wakeUp(r){
   if(!r||r.dead||!r.slSleeping||r.slBusy)return;
   r.slBusy=true;
   lightsUp(r);
-  showStanders(r);
+  showStand(r,'ghalia');showStand(r,'khala');
   r.slSleeping=false;r.slKhala=false;r.inBed=false;
   r.def.noWalk=false;r.def.noWander=false;
-  placeWakeChars(r);
+  A.putChar('ghalia',470,690,true);
+  if(r.chars.khala)A.putChar('khala',300,700,true);
   r.slBusy=false;
   updateDock(r);
   say(LINES.morning);
@@ -221,26 +310,28 @@ function bindDock(r){
     var act=b.getAttribute('data-act');
     if(act==='sleep')goToSleep(r,{});
     else if(act==='khala')khalaJoin(r,{});
-    else if(act==='wake')wakeUp(r,{});
+    else if(act==='wake')wakeUp(r);
   });
+  if(r.slHit)r.slHit.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(r.slSleeping)wakeUp(r);});
 }
 
 function setup(r){
   stopLullaby();
   r.slSleeping=false;r.slKhala=false;r.slBusy=false;
   r.def.noWalk=false;r.def.noWander=false;
+  if(r.blanket)r.blanket.style.visibility='hidden';
   var sc=A.scene();
+  var layers=mkLock();
+  r.slLock=layers.lock;r.slG=layers.g;r.slK=layers.k;r.slQuilt=layers.quilt;r.slHit=layers.hit;r.slZ1=layers.z1;r.slZ2=layers.z2;
+  /* sit inside the painted plate so we can share its parallax transform */
+  var plate=sc.querySelector('.v2p')||sc;
+  plate.appendChild(r.slLock);
   r.slNightEl=mkNight();sc.appendChild(r.slNightEl);
-  r.slZ1=mkZzz(900,230);sc.appendChild(r.slZ1);
-  r.slZ2=mkZzz(620,200);sc.appendChild(r.slZ2);
   r.slDock=mkDock();sc.appendChild(r.slDock);
   bindDock(r);
   updateDock(r);
-  /* preload both overlays */
-  r.slGhaliaOv=mkOverlay('img/sleep/ghalia.webp');sc.appendChild(r.slGhaliaOv);
-  r.slTogetherOv=mkOverlay('img/sleep/together.webp','together');sc.appendChild(r.slTogetherOv);
-  r.slGhaliaOv.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(r.slSleeping)wakeUp(r);});
-  r.slTogetherOv.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(r.slSleeping)wakeUp(r);});
+  startParallax(r);
+  syncParallax();
   if(!window.__slWatch){window.__slWatch=setInterval(function(){var cur=A.getR();if(!cur||cur.id!=='bedroom'||cur.dead||!cur.slSleeping)stopLullaby();},1000);}
 }
 
@@ -273,9 +364,9 @@ ROOMS.bedroom.drop=function(id,p){
 };
 
 window.__sleep={
-  go:function(o){var r=A.getR();if(r&&r.id==='bedroom')goToSleep(r,o||{instant:true});},
-  khala:function(o){var r=A.getR();if(r&&r.id==='bedroom')khalaJoin(r,o||{instant:true});},
-  wake:function(o){var r=A.getR();if(r&&r.id==='bedroom')wakeUp(r,o||{});},
+  go:function(o){var r=A.getR();if(r&&r.id==='bedroom')goToSleep(r,o||{});},
+  khala:function(o){var r=A.getR();if(r&&r.id==='bedroom')khalaJoin(r,o||{});},
+  wake:function(o){var r=A.getR();if(r&&r.id==='bedroom')wakeUp(r);},
   state:function(){var r=A.getR();return r?{id:r.id,sleeping:!!r.slSleeping,khala:!!r.slKhala,busy:!!r.slBusy}:null;}
 };
 })();

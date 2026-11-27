@@ -1,17 +1,21 @@
-/* Bedroom sleep: Ghalia tucks in with her teddy, Khala can sleep beside her. */
+/* Bedroom sleep: climb into the real bed, quilt over bodies, heads on the pillows. */
 #scene.sl-asleep .v2lampglow{opacity:0}
 #scene.sl-asleep .v2tw{opacity:.4}
 #scene.sl-asleep .v2duvet,#scene.sl-asleep .prop.v2hide-bed{visibility:hidden}
 
-.sl-overlay{position:absolute;left:0;top:0;width:1280px;height:720px;z-index:13;pointer-events:none;opacity:0;transform-origin:820px 390px}
-.sl-overlay img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;-webkit-user-drag:none}
-.sl-overlay.on{pointer-events:auto;opacity:1;animation:slTuck .9s cubic-bezier(.2,.8,.2,1) both}
-.sl-overlay.breath{animation:slBreath 3.4s ease-in-out infinite}
-.sl-overlay.fade{animation:slFade .55s ease both}
-.sl-overlay.together{transform-origin:760px 360px}
-@keyframes slTuck{0%{opacity:0;transform:translateY(22px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes slFade{from{opacity:0}to{opacity:1}}
-@keyframes slBreath{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-2px) scale(1.008,1.014)}}
+/* Lock group shares the painted plate's parallax so sleepers stay on the bed. */
+#sl-lock{position:absolute;left:0;top:0;width:1280px;height:720px;z-index:14;pointer-events:none;transform-origin:50% 50%}
+#sl-lock.hot{pointer-events:auto}
+.sl-sleeper{position:absolute;opacity:0;z-index:3;pointer-events:none;filter:drop-shadow(0 10px 12px rgba(70,20,40,.28));will-change:left,top,opacity,transform}
+.sl-sleeper img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none}
+.sl-sleeper.on{opacity:1}
+.sl-sleeper.breath{animation:slSbreath 3.4s ease-in-out infinite;transform-origin:70% 55%}
+@keyframes slSbreath{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-1.5px) scale(1.008,1.012)}}
+
+.sl-quilt{position:absolute;left:0;top:0;width:1280px;height:720px;z-index:5;pointer-events:none;
+  clip-path:inset(70% 0 0 0);transition:clip-path .85s cubic-bezier(.3,.8,.2,1)}
+.sl-quilt.up{clip-path:inset(0)}
+.sl-quilt img{display:block;width:1280px;height:720px;pointer-events:none;-webkit-user-drag:none}
 
 .sl-night{position:absolute;inset:0;z-index:12;pointer-events:none;opacity:0;transition:opacity 1.3s ease}
 .sl-night.on{opacity:1}
@@ -26,7 +30,7 @@
   animation:slTw 1.8s ease-in-out infinite alternate;filter:drop-shadow(0 0 4px #fff6)}
 @keyframes slTw{0%{opacity:.25;transform:scale(.7) rotate(0)}100%{opacity:1;transform:scale(1.15) rotate(20deg)}}
 
-.sl-zzz{position:absolute;z-index:16;pointer-events:none;font:900 28px/1 Tajawal,Cairo,sans-serif;color:#fff6c2;text-shadow:0 2px 8px #2a1870,0 0 12px #c9b4ff;opacity:0}
+.sl-zzz{position:absolute;z-index:8;pointer-events:none;font:900 28px/1 Tajawal,Cairo,sans-serif;color:#fff6c2;text-shadow:0 2px 8px #2a1870,0 0 12px #c9b4ff;opacity:0}
 .sl-zzz.on{opacity:1}
 .sl-zzz i{position:absolute;font-style:normal;opacity:0;animation:slZ 2.6s linear infinite}
 .sl-zzz i:nth-child(2){animation-delay:.85s}
@@ -50,8 +54,8 @@
 .sl-btn:disabled{opacity:.45;cursor:default}
 .sl-btn:disabled i{transform:none;filter:grayscale(.3)}
 
-.char.sl-tucked{opacity:0!important;pointer-events:none!important;transition:opacity .45s ease}
-#scene.sl-asleep .char{pointer-events:none}
+/* Standing sprites must actually vanish once they have climbed in. */
+.char.sl-tucked,.char.sl-tucked img{opacity:0!important;visibility:hidden!important;pointer-events:none!important;transition:none!important;animation:none!important}
 
-/* hide default zzz on standing sprite while we use our own */
-#scene.sl-asleep .char .zzz{display:none}
+.sl-bedhit{position:absolute;left:480px;top:250px;width:540px;height:360px;z-index:6;pointer-events:none}
+#sl-lock.hot .sl-bedhit{pointer-events:auto}

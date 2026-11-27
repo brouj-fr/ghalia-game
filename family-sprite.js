@@ -11,7 +11,7 @@
   var A = root.FAMILY_ATLAS, tex = null, shadowTex = null, U = 1.62, mats = [];
   var AR = { hoor: 'حور', nada: 'ندى', fahad: 'فهد', abdullah: 'عبدالله', saud: 'سعود', saif: 'سيف', mama: 'ماما', ghalia: 'غالية', khala: 'خالة' };
   var SAY = { hoor: 'Hoore', nada: 'Nadah', fahad: 'Fahad', abdullah: 'Abdullah', saud: 'Saood', saif: 'Sayf', mama: 'Mama', ghalia: 'Ghalia', khala: 'Khala' };
-  var SCALE = { hoor: 1.06, nada: 1.12, fahad: .82, abdullah: 1, saud: .96, saif: .62, mama: 1.3 };
+  var SCALE = { hoor: 1.22, nada: 1.12, fahad: .82, abdullah: 1, saud: .96, saif: .62, mama: 1.3 };
   var LAST = { hoor: 'sit', nada: 'sit', fahad: 'sit', abdullah: 'sit', saud: 'sit', saif: 'sit', mama: 'hug' };
   var KIDS = ['hoor', 'nada', 'fahad', 'abdullah', 'saud', 'saif'];
   var COUSINS = ['hoor', 'nada', 'fahad', 'abdullah'];
